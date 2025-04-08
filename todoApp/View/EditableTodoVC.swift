@@ -35,12 +35,12 @@ class EditableTodoVC: UIViewController {
 
     // MARK: Init
     fileprivate init(
-        _ textInputStackView: TextInputStackView,
-        _ dateInputStackView: DateInputStackView,
+        model: TodoModelProtocol? = nil,
         viewModel: EditableTodoVM
     ) {
-        self.textInputStackView = textInputStackView
-        self.dateInputStackView = dateInputStackView
+        self.textInputStackView = TextInputStackView(
+            title: model?.title, content: model?.contents)
+        self.dateInputStackView = DateInputStackView(model?.date)
         self.viewModel = viewModel
 
         super.init(nibName: nil, bundle: nil)
@@ -138,8 +138,6 @@ class EditableTodoVC: UIViewController {
 class CreateTodoVC: EditableTodoVC {
     init() {
         super.init(
-            TextInputStackView(),
-            DateInputStackView(),
             viewModel: CreateTodoVM()
         )
     }
@@ -147,7 +145,7 @@ class CreateTodoVC: EditableTodoVC {
     @MainActor required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     override func viewDidLoad() {
         self.title = I18N.createTodo
         super.viewDidLoad()
@@ -158,12 +156,8 @@ class CreateTodoVC: EditableTodoVC {
 // MARK: -
 class EditTodoVC: EditableTodoVC {
     init(_ model: TodoModelProtocol) {
-        //        let formatter = DateFormatter()
-        //        formatter.dateFormat = "yyyy/MM/dd"
-        //         let specificDate = formatter.date(from: "2025/03/29")!
         super.init(
-            TextInputStackView(title: model.title, content: model.contents),
-            DateInputStackView(model.date),
+            model : model,
             viewModel: EditTodoVM(model: model)
         )
     }
@@ -171,7 +165,7 @@ class EditTodoVC: EditableTodoVC {
     @MainActor required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     override func viewDidLoad() {
         self.title = I18N.editTodo
         super.viewDidLoad()

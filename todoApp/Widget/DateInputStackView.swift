@@ -45,7 +45,7 @@ class DateInputStackView: UIStackView {
 
     private let disposeBag = DisposeBag()
 
-    init(_ date:Date? = nil) {
+    init(_ date:Date?) {
         self.isInitialDate = BehaviorRelay(value: date != nil)
         
         self.changedDateRX = Observable.combineLatest(
