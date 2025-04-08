@@ -24,7 +24,6 @@
 		C9083E9628E077EF006DEF47 /* UIColorEx.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9083E9528E077EF006DEF47 /* UIColorEx.swift */; };
 		C9083E9828E07AC6006DEF47 /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9083E9728E07AC6006DEF47 /* MainViewController.swift */; };
 		C9083E9B28E08304006DEF47 /* Constant.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9083E9A28E08304006DEF47 /* Constant.swift */; };
-		C90B803E2D87F9F50057BC46 /* TodoDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C90B803D2D87F9F50057BC46 /* TodoDetailViewModel.swift */; };
 		C90E48512D6D50C600FA6A81 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = C90E48502D6D50C600FA6A81 /* Alamofire */; };
 		C90E48542D6D537C00FA6A81 /* NetworkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C90E48532D6D537C00FA6A81 /* NetworkManager.swift */; };
 		C90E48592D6D57EF00FA6A81 /* Moya in Frameworks */ = {isa = PBXBuildFile; productRef = C90E48582D6D57EF00FA6A81 /* Moya */; };
@@ -85,7 +84,6 @@
 		C9083E9528E077EF006DEF47 /* UIColorEx.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIColorEx.swift; sourceTree = "<group>"; };
 		C9083E9728E07AC6006DEF47 /* MainViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
 		C9083E9A28E08304006DEF47 /* Constant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constant.swift; sourceTree = "<group>"; };
-		C90B803D2D87F9F50057BC46 /* TodoDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoDetailViewModel.swift; sourceTree = "<group>"; };
 		C90E48532D6D537C00FA6A81 /* NetworkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkManager.swift; sourceTree = "<group>"; };
 		C92513552D782346004E2D5B /* TodoTarget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoTarget.swift; sourceTree = "<group>"; };
 		C925135D2D782E38004E2D5B /* TodoDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoDTO.swift; sourceTree = "<group>"; };
@@ -236,9 +234,8 @@
 		C92513572D782C5E004E2D5B /* ViewModel */ = {
 			isa = PBXGroup;
 			children = (
-				C9287B672D6EED170025A8C0 /* MainViewModel.swift */,
 				C9E4A8AC28EAF24D0002FA8F /* ViewModelProtocol.swift */,
-				C90B803D2D87F9F50057BC46 /* TodoDetailViewModel.swift */,
+				C9287B672D6EED170025A8C0 /* MainViewModel.swift */,
 				C95696862D91310800E4D8B1 /* EditableTodoVM.swift */,
 			);
 			path = ViewModel;
@@ -532,7 +529,6 @@
 				04457ED128A6033B00AF2EBB /* AppDelegate.swift in Sources */,
 				04457ED328A6033B00AF2EBB /* SceneDelegate.swift in Sources */,
 				C90E48542D6D537C00FA6A81 /* NetworkManager.swift in Sources */,
-				C90B803E2D87F9F50057BC46 /* TodoDetailViewModel.swift in Sources */,
 				C9CBB8452D9D24AE00747A70 /* DateInputStackView.swift in Sources */,
 				C9287B682D6EED170025A8C0 /* MainViewModel.swift in Sources */,
 				C95696872D91310800E4D8B1 /* EditableTodoVM.swift in Sources */,

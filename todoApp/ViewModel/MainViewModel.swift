@@ -29,7 +29,7 @@ class MainViewModel: ViewModelProtocol {
     let output: Output
 
     var disposeBag = DisposeBag()
-    let repo = TodoRepo(dataSource: MockTodoDS())
+    let repo = TodoRepo(MockTodoDS())
 
     private let fetchRelay = BehaviorRelay(value: false)
     private let errorRelay = BehaviorRelay<Error?>(value: nil)

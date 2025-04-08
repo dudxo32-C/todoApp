@@ -37,7 +37,7 @@ class TodoDetailViewModel: ViewModelProtocol {
     
     var disposeBag = DisposeBag()
     
-    let repo = TodoRepo(dataSource: MockTodoDS())
+    let repo = TodoRepo(MockTodoDS())
     
     //    private let tempTodo: BehaviorRelay<TodoModel?>
     
