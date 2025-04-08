@@ -48,6 +48,7 @@
 		C9DB5FC52D80258200B72B5D /* Realm in Frameworks */ = {isa = PBXBuildFile; productRef = C9DB5FC42D80258200B72B5D /* Realm */; };
 		C9DB5FC72D80258200B72B5D /* RealmSwift in Frameworks */ = {isa = PBXBuildFile; productRef = C9DB5FC62D80258200B72B5D /* RealmSwift */; };
 		C9E4A8AD28EAF24D0002FA8F /* ViewModelProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9E4A8AC28EAF24D0002FA8F /* ViewModelProtocol.swift */; };
+		C9E5382C2DA5081000D529D8 /* Swinject in Frameworks */ = {isa = PBXBuildFile; productRef = C9E5382B2DA5081000D529D8 /* Swinject */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -113,6 +114,7 @@
 				C97DC9962D940C2500D57958 /* RxGesture in Frameworks */,
 				C90E48592D6D57EF00FA6A81 /* Moya in Frameworks */,
 				C9DB5FC72D80258200B72B5D /* RealmSwift in Frameworks */,
+				C9E5382C2DA5081000D529D8 /* Swinject in Frameworks */,
 				04457F0228A6038D00AF2EBB /* SnapKit in Frameworks */,
 				C90E48512D6D50C600FA6A81 /* Alamofire in Frameworks */,
 				04457F0A28A603D700AF2EBB /* RxCocoa in Frameworks */,
@@ -170,6 +172,7 @@
 				C92513592D782C86004E2D5B /* Model */,
 				C92513582D782C7A004E2D5B /* View */,
 				C92513572D782C5E004E2D5B /* ViewModel */,
+				C9E5382D2DA50B6500D529D8 /* DI */,
 				C9083E9928E082F5006DEF47 /* Constant */,
 				C9083E9428E077D1006DEF47 /* Extensions */,
 				04457ED028A6033B00AF2EBB /* AppDelegate.swift */,
@@ -324,6 +327,13 @@
 			path = Realm;
 			sourceTree = "<group>";
 		};
+		C9E5382D2DA50B6500D529D8 /* DI */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = DI;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -352,6 +362,7 @@
 				C9DB5FC42D80258200B72B5D /* Realm */,
 				C9DB5FC62D80258200B72B5D /* RealmSwift */,
 				C97DC9952D940C2500D57958 /* RxGesture */,
+				C9E5382B2DA5081000D529D8 /* Swinject */,
 			);
 			productName = todoApp;
 			productReference = 04457ECD28A6033B00AF2EBB /* todoApp.app */;
@@ -437,6 +448,7 @@
 				C90E48552D6D57EF00FA6A81 /* XCRemoteSwiftPackageReference "Moya" */,
 				C9DB5FC32D80258200B72B5D /* XCRemoteSwiftPackageReference "realm-swift" */,
 				C97DC9942D940C2500D57958 /* XCRemoteSwiftPackageReference "RxGesture" */,
+				C9E5382A2DA5081000D529D8 /* XCRemoteSwiftPackageReference "Swinject" */,
 			);
 			productRefGroup = 04457ECE28A6033B00AF2EBB /* Products */;
 			projectDirPath = "";
@@ -934,6 +946,14 @@
 				version = 10.33.0;
 			};
 		};
+		C9E5382A2DA5081000D529D8 /* XCRemoteSwiftPackageReference "Swinject" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Swinject/Swinject";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.9.1;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -996,6 +1016,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = C9DB5FC32D80258200B72B5D /* XCRemoteSwiftPackageReference "realm-swift" */;
 			productName = RealmSwift;
+		};
+		C9E5382B2DA5081000D529D8 /* Swinject */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C9E5382A2DA5081000D529D8 /* XCRemoteSwiftPackageReference "Swinject" */;
+			productName = Swinject;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
