@@ -49,6 +49,8 @@
 		C9DB5FC72D80258200B72B5D /* RealmSwift in Frameworks */ = {isa = PBXBuildFile; productRef = C9DB5FC62D80258200B72B5D /* RealmSwift */; };
 		C9E4A8AD28EAF24D0002FA8F /* ViewModelProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9E4A8AC28EAF24D0002FA8F /* ViewModelProtocol.swift */; };
 		C9E5382C2DA5081000D529D8 /* Swinject in Frameworks */ = {isa = PBXBuildFile; productRef = C9E5382B2DA5081000D529D8 /* Swinject */; };
+		C9E5382F2DA50D9F00D529D8 /* EditableTodoDIContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9E5382E2DA50D9F00D529D8 /* EditableTodoDIContainer.swift */; };
+		C9E538312DA5178B00D529D8 /* AppDIContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9E538302DA5178B00D529D8 /* AppDIContainer.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -102,6 +104,8 @@
 		C9DB5FB32D7EAF0B00B72B5D /* TodoRepo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoRepo.swift; sourceTree = "<group>"; };
 		C9DB5FB82D801F7600B72B5D /* TodoRealm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoRealm.swift; sourceTree = "<group>"; };
 		C9E4A8AC28EAF24D0002FA8F /* ViewModelProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewModelProtocol.swift; sourceTree = "<group>"; };
+		C9E5382E2DA50D9F00D529D8 /* EditableTodoDIContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditableTodoDIContainer.swift; sourceTree = "<group>"; };
+		C9E538302DA5178B00D529D8 /* AppDIContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDIContainer.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -330,6 +334,8 @@
 		C9E5382D2DA50B6500D529D8 /* DI */ = {
 			isa = PBXGroup;
 			children = (
+				C9E5382E2DA50D9F00D529D8 /* EditableTodoDIContainer.swift */,
+				C9E538302DA5178B00D529D8 /* AppDIContainer.swift */,
 			);
 			path = DI;
 			sourceTree = "<group>";
@@ -513,6 +519,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C9E5382F2DA50D9F00D529D8 /* EditableTodoDIContainer.swift in Sources */,
 				C95B652B2D9E7F3600F05436 /* I18N.swift in Sources */,
 				C9083E9628E077EF006DEF47 /* UIColorEx.swift in Sources */,
 				C95B65242D9E6D8600F05436 /* VerticalScrollView.swift in Sources */,
@@ -534,6 +541,7 @@
 				C9E4A8AD28EAF24D0002FA8F /* ViewModelProtocol.swift in Sources */,
 				C9083E9828E07AC6006DEF47 /* MainViewController.swift in Sources */,
 				C9083E9B28E08304006DEF47 /* Constant.swift in Sources */,
+				C9E538312DA5178B00D529D8 /* AppDIContainer.swift in Sources */,
 				C95B652D2D9E828900F05436 /* StringEX.swift in Sources */,
 				C9DB5FB42D7EAF0B00B72B5D /* TodoRepo.swift in Sources */,
 				C99048382998A5A6004AD091 /* UIButtonEX.swift in Sources */,

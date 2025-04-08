@@ -35,8 +35,8 @@ class EditableTodoVC: UIViewController {
 
     // MARK: Init
     fileprivate init(
-        model: TodoModelProtocol? = nil,
-        viewModel: EditableTodoVM
+        viewModel: EditableTodoVM,
+        model: TodoModelProtocol? = nil
     ) {
         self.textInputStackView = TextInputStackView(
             title: model?.title, content: model?.contents)
@@ -136,10 +136,8 @@ class EditableTodoVC: UIViewController {
 
 // MARK: -
 class CreateTodoVC: EditableTodoVC {
-    init() {
-        super.init(
-            viewModel: CreateTodoVM()
-        )
+    init(_ viewModel:EditableTodoVM) {
+        super.init(viewModel: viewModel)
     }
 
     @MainActor required init?(coder: NSCoder) {
@@ -155,11 +153,8 @@ class CreateTodoVC: EditableTodoVC {
 
 // MARK: -
 class EditTodoVC: EditableTodoVC {
-    init(_ model: TodoModelProtocol) {
-        super.init(
-            model : model,
-            viewModel: EditTodoVM(model: model)
-        )
+    init(model: TodoModelProtocol, viewModel: EditableTodoVM) {
+        super.init(viewModel: viewModel, model: model)
     }
 
     @MainActor required init?(coder: NSCoder) {
