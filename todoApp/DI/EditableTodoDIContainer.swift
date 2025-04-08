@@ -8,7 +8,6 @@
 import Foundation
 import Swinject
 
-
 class EditableTodoDIContainer {
     private let container: Container
     private let assembler: Assembler
@@ -22,15 +21,16 @@ class EditableTodoDIContainer {
         )
     }
 
-    func makeCreateTodoVC(_ type: DataEnvironment = .mock) -> CreateTodoVC {
+    func makeCreateTodoVC(_ type: DataEnvironment) -> CreateTodoVC {
         return assembler.resolver.resolve(CreateTodoVC.self, argument: type)!
     }
 
     func makeEditTodoVC(
         todoModel: TodoModelProtocol,
-        _ type: DataEnvironment = .mock
+        _ type: DataEnvironment
     ) -> EditTodoVC {
-        return assembler.resolver.resolve(EditTodoVC.self, arguments: type, todoModel)!
+        return assembler.resolver.resolve(
+            EditTodoVC.self, arguments: type, todoModel)!
     }
 }
 
@@ -52,7 +52,7 @@ final class TodoEditableAssembly: Assembly {
 
             return CreateTodoVM(repo)
         }
-        
+
         // 생성 화면 등록
         container.register(CreateTodoVC.self) { (r, env: DataEnvironment) in
             let vm = r.resolve(CreateTodoVM.self, argument: env)!
@@ -60,7 +60,6 @@ final class TodoEditableAssembly: Assembly {
             return CreateTodoVC(vm)
         }
 
-        
         // 수정 vm 등록
         container.register(EditTodoVM.self) {
             (r, env: DataEnvironment, model: TodoModelProtocol) in
@@ -68,7 +67,7 @@ final class TodoEditableAssembly: Assembly {
 
             return EditTodoVM(model: model, repository: repo)
         }
-   
+
         // 수정 화면 등록
         container.register(EditTodoVC.self) {
             (r, env: DataEnvironment, model: TodoModelProtocol) in

@@ -68,19 +68,21 @@ class EditableTodoVC: UIViewController {
         // 로딩인디케이터 추가
         self.view.addSubview(self.loadingIndicator)
 
-        textInputBinding()
-        createButtonBinding(createTodoButton)
+        self.textInputBinding()
+        self.createButtonBinding(createTodoButton)
 
+        // 로딩인디케이터 바인딩
         self.viewModel.output.isLoading
             .drive(self.loadingIndicator.rx.isAnimating)
             .disposed(by: self.disposeBag)
 
+        // 생성, 수정 완료후 작업
         self.viewModel.output.writeTodoResult.drive { result in
             switch result {
             case .success(let todo):
                 self.writtenTodo.onNext(todo)
                 self.writtenTodo.onCompleted()
-                self.navigationController?.dismiss(animated: true)
+                self.didFinishWriting()
 
                 break
             case .failure(let error):
@@ -132,6 +134,10 @@ class EditableTodoVC: UIViewController {
             .bind(to: self.viewModel.input.doneTap)
             .disposed(by: disposeBag)
     }
+    
+    fileprivate func didFinishWriting() {
+        preconditionFailure("Subclasses must implement didFinishWriting()")
+    }
 }
 
 // MARK: -
@@ -147,6 +153,10 @@ class CreateTodoVC: EditableTodoVC {
     override func viewDidLoad() {
         self.title = I18N.createTodo
         super.viewDidLoad()
+    }
+    
+    override func didFinishWriting() {
+        self.navigationController?.dismiss(animated: true)
     }
 
 }
@@ -164,5 +174,9 @@ class EditTodoVC: EditableTodoVC {
     override func viewDidLoad() {
         self.title = I18N.editTodo
         super.viewDidLoad()
+    }
+    
+    override func didFinishWriting() {
+        self.navigationController?.dismiss(animated: true)
     }
 }
