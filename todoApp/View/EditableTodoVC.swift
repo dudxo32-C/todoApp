@@ -35,12 +35,12 @@ class EditableTodoVC: UIViewController {
 
     // MARK: Init
     fileprivate init(
-        _ textInputStackView: TextInputStackView,
-        _ dateInputStackView: DateInputStackView,
-        viewModel: EditableTodoVM
+        viewModel: EditableTodoVM,
+        model: TodoModelProtocol? = nil
     ) {
-        self.textInputStackView = textInputStackView
-        self.dateInputStackView = dateInputStackView
+        self.textInputStackView = TextInputStackView(
+            title: model?.title, content: model?.contents)
+        self.dateInputStackView = DateInputStackView(model?.date)
         self.viewModel = viewModel
 
         super.init(nibName: nil, bundle: nil)
@@ -68,19 +68,21 @@ class EditableTodoVC: UIViewController {
         // 로딩인디케이터 추가
         self.view.addSubview(self.loadingIndicator)
 
-        textInputBinding()
-        createButtonBinding(createTodoButton)
+        self.textInputBinding()
+        self.createButtonBinding(createTodoButton)
 
+        // 로딩인디케이터 바인딩
         self.viewModel.output.isLoading
             .drive(self.loadingIndicator.rx.isAnimating)
             .disposed(by: self.disposeBag)
 
+        // 생성, 수정 완료후 작업
         self.viewModel.output.writeTodoResult.drive { result in
             switch result {
             case .success(let todo):
                 self.writtenTodo.onNext(todo)
                 self.writtenTodo.onCompleted()
-                self.navigationController?.dismiss(animated: true)
+                self.didFinishWriting()
 
                 break
             case .failure(let error):
@@ -132,48 +134,49 @@ class EditableTodoVC: UIViewController {
             .bind(to: self.viewModel.input.doneTap)
             .disposed(by: disposeBag)
     }
+    
+    fileprivate func didFinishWriting() {
+        preconditionFailure("Subclasses must implement didFinishWriting()")
+    }
 }
 
 // MARK: -
 class CreateTodoVC: EditableTodoVC {
-    init() {
-        super.init(
-            TextInputStackView(),
-            DateInputStackView(),
-            viewModel: CreateTodoVM()
-        )
+    init(_ viewModel:EditableTodoVM) {
+        super.init(viewModel: viewModel)
     }
 
     @MainActor required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     override func viewDidLoad() {
         self.title = I18N.createTodo
         super.viewDidLoad()
+    }
+    
+    override func didFinishWriting() {
+        self.navigationController?.dismiss(animated: true)
     }
 
 }
 
 // MARK: -
 class EditTodoVC: EditableTodoVC {
-    init(_ model: TodoModelProtocol) {
-        //        let formatter = DateFormatter()
-        //        formatter.dateFormat = "yyyy/MM/dd"
-        //         let specificDate = formatter.date(from: "2025/03/29")!
-        super.init(
-            TextInputStackView(title: model.title, content: model.contents),
-            DateInputStackView(model.date),
-            viewModel: EditTodoVM(model: model)
-        )
+    init(model: TodoModelProtocol, viewModel: EditableTodoVM) {
+        super.init(viewModel: viewModel, model: model)
     }
 
     @MainActor required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     override func viewDidLoad() {
         self.title = I18N.editTodo
         super.viewDidLoad()
+    }
+    
+    override func didFinishWriting() {
+        self.navigationController?.dismiss(animated: true)
     }
 }

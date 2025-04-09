@@ -54,10 +54,10 @@ class TextInputStackView: UIStackView {
     
 
     // MARK: - Init
-    init(title: String = "", content: String = "") {
+    init(title: String?, content: String?) {
         self.titleTextInput.text = title
         self.contentTextInput.text = content
-        self.contentPlaceholderLabel.isHidden = !(content.isEmpty)
+        self.contentPlaceholderLabel.isHidden = !(content ?? "").isEmpty
 
         super.init(frame: .zero)
 

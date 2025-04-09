@@ -27,21 +27,22 @@ class EditableTodoVM: ViewModelProtocol {
     let input: Input
     let output: Output
 
+    fileprivate let repo: TodoRepo
 
-    fileprivate let repo = TodoRepo(dataSource: MockTodoDS())
-    
     // MARK: RX
     fileprivate let loadingRelay: BehaviorRelay<Bool> = .init(value: false)
     private let createResultRelay:
         PublishRelay<Result<TodoModelProtocol, Error>> = .init()
     fileprivate let inputValidRelay: Observable<Bool>
     var disposeBag = DisposeBag()
-    
+
     // MARK: Init
     fileprivate init(
         input: Input,
-        inputValidRelay: Observable<Bool>
+        inputValidRelay: Observable<Bool>,
+        repository: TodoRepo
     ) {
+        self.repo = repository
         self.input = input
         self.inputValidRelay = inputValidRelay
 
@@ -72,13 +73,13 @@ class EditableTodoVM: ViewModelProtocol {
 }
 
 class CreateTodoVM: EditableTodoVM {
-    init() {
+    init(_ repository: TodoRepo) {
         let input = Input(
             titleRelay: .init(value: ""),
             dateRelay: .init(value: nil),
             contentRelay: .init(value: "")
         )
-        
+
         let validation = Observable.combineLatest(
             input.titleRelay, input.dateRelay
         )
@@ -88,7 +89,8 @@ class CreateTodoVM: EditableTodoVM {
 
         super.init(
             input: input,
-            inputValidRelay: validation
+            inputValidRelay: validation,
+            repository: repository
         )
     }
 
@@ -133,19 +135,17 @@ class EditTodoVM: EditableTodoVM {
     private let isChangedTitle = BehaviorRelay(value: false)
     private let isChangedDate = BehaviorRelay(value: false)
     private let isChangedContent = BehaviorRelay(value: false)
-    
+
     // MARK: Init
-    init(model: TodoModelProtocol) {
+    init(model: TodoModelProtocol, repository: TodoRepo) {
         self.model = TodoModel(model)
-        
+
         let input = Input(
             titleRelay: .init(value: model.title),
             dateRelay: .init(value: model.date),
             contentRelay: .init(value: model.contents)
         )
-        
-        
-        
+
         // 변화가 있는지 체크
         let isChangedInput = Observable.combineLatest(
             self.isChangedTitle,
@@ -165,24 +165,24 @@ class EditTodoVM: EditableTodoVM {
 
         super.init(
             input: input,
-            inputValidRelay: validation
+            inputValidRelay: validation,
+            repository: repository
         )
-        
-        input.titleRelay.map{ $0 != model.title}
+
+        input.titleRelay.map { $0 != model.title }
             .bind(to: isChangedTitle)
             .disposed(by: disposeBag)
-        
-        input.dateRelay.map{
-            guard let date = $0 else {return false}
+
+        input.dateRelay.map {
+            guard let date = $0 else { return false }
             return !Calendar.current.isDate(date, inSameDayAs: model.date)
         }
-            .bind(to: isChangedDate)
-            .disposed(by: disposeBag)
-        
-        input.contentRelay.map{ $0 != model.title}
+        .bind(to: isChangedDate)
+        .disposed(by: disposeBag)
+
+        input.contentRelay.map { $0 != model.title }
             .bind(to: isChangedContent)
             .disposed(by: disposeBag)
-
     }
 
     override func doneTap() -> Single<TodoModel> {

@@ -12,9 +12,7 @@ import RealmSwift
 
 enum TodoError: Error { case notFound }
 
-private protocol TodoDataSourceProvider {
-    var networkManager: NetworkManager<TodoAPI> { get }
-
+protocol TodoDataSourceProvider {
     func fetchTodoList() async throws -> [TodoResponseDTO]
 
     func writeTodo(title: String, contents: String, date: Date) async throws
@@ -26,10 +24,10 @@ private protocol TodoDataSourceProvider {
 }
 
 class TodoRepo {
-    private let dataSource: TodoDS
+    private let dataSource: TodoDataSourceProvider
     private let cancelBag = Set<AnyCancellable>()
 
-    init(dataSource: TodoDS) {
+    init(_ dataSource: TodoDataSourceProvider) {
         self.dataSource = dataSource
     }
 

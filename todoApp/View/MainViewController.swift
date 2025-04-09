@@ -117,8 +117,9 @@ class MainViewController: UIViewController {
 
     }
     
+    // TODO: Coordinator 패턴 적용하기
     @objc private func newTodoTap(){
-        let newVC = CreateTodoVC()
+        let newVC = EditableTodoDIContainer().makeCreateTodoVC(.mock)
         let modalNavi = UINavigationController(rootViewController: newVC)
         self.navigationController?.present(modalNavi, animated: true)
 
