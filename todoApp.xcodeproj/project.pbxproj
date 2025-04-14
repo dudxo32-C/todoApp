@@ -40,6 +40,7 @@
 		C97BA7392D91486800C43CB9 /* EditableTodoVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = C97BA7382D91486800C43CB9 /* EditableTodoVC.swift */; };
 		C97DC9962D940C2500D57958 /* RxGesture in Frameworks */ = {isa = PBXBuildFile; productRef = C97DC9952D940C2500D57958 /* RxGesture */; };
 		C99048382998A5A6004AD091 /* UIButtonEX.swift in Sources */ = {isa = PBXBuildFile; fileRef = C99048372998A5A6004AD091 /* UIButtonEX.swift */; };
+		C9AFC9C82DACDD8C0083D50B /* TodoCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9AFC9C72DACDD8C0083D50B /* TodoCell.swift */; };
 		C9CBB8432D9D097A00747A70 /* TextInputStackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9CBB8422D9D097A00747A70 /* TextInputStackView.swift */; };
 		C9CBB8452D9D24AE00747A70 /* DateInputStackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9CBB8442D9D24AE00747A70 /* DateInputStackView.swift */; };
 		C9DB5FB42D7EAF0B00B72B5D /* TodoRepo.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9DB5FB32D7EAF0B00B72B5D /* TodoRepo.swift */; };
@@ -97,6 +98,7 @@
 		C95B652C2D9E828900F05436 /* StringEX.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StringEX.swift; sourceTree = "<group>"; };
 		C97BA7382D91486800C43CB9 /* EditableTodoVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditableTodoVC.swift; sourceTree = "<group>"; };
 		C99048372998A5A6004AD091 /* UIButtonEX.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIButtonEX.swift; sourceTree = "<group>"; };
+		C9AFC9C72DACDD8C0083D50B /* TodoCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoCell.swift; sourceTree = "<group>"; };
 		C9CBB8422D9D097A00747A70 /* TextInputStackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextInputStackView.swift; sourceTree = "<group>"; };
 		C9CBB8442D9D24AE00747A70 /* DateInputStackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateInputStackView.swift; sourceTree = "<group>"; };
 		C9DB5FB32D7EAF0B00B72B5D /* TodoRepo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoRepo.swift; sourceTree = "<group>"; };
@@ -309,6 +311,7 @@
 				C9CBB8442D9D24AE00747A70 /* DateInputStackView.swift */,
 				C95B65212D9E52AD00F05436 /* LoadingIndicator.swift */,
 				C95B65232D9E6D8600F05436 /* VerticalScrollView.swift */,
+				C9AFC9C72DACDD8C0083D50B /* TodoCell.swift */,
 			);
 			path = Widget;
 			sourceTree = "<group>";
@@ -535,6 +538,7 @@
 				C9CBB8432D9D097A00747A70 /* TextInputStackView.swift in Sources */,
 				C97BA7392D91486800C43CB9 /* EditableTodoVC.swift in Sources */,
 				C9E4A8AD28EAF24D0002FA8F /* ViewModelProtocol.swift in Sources */,
+				C9AFC9C82DACDD8C0083D50B /* TodoCell.swift in Sources */,
 				C9083E9828E07AC6006DEF47 /* MainViewController.swift in Sources */,
 				C9083E9B28E08304006DEF47 /* Constant.swift in Sources */,
 				C9E538312DA5178B00D529D8 /* AppDIContainer.swift in Sources */,
