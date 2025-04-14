@@ -12,11 +12,11 @@ import SnapKit
 import Then
 import UIKit
 
+private let reuseIdentifier = "CustomCell"
+
 class MainViewController: UIViewController {
     let table = UITableView().then {
-        $0.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
-        
-        $0.backgroundColor = UIColor.green
+        $0.register(TodoCell.self, forCellReuseIdentifier: reuseIdentifier)
         $0.isHidden = true
     }
 
@@ -25,7 +25,7 @@ class MainViewController: UIViewController {
     }
 
     private let loadingIndicator = LoadingIndicator()
-    
+
     private let noListLabel: UILabel = {
         let label = UILabel()
         label.text = I18N.noList
@@ -37,7 +37,7 @@ class MainViewController: UIViewController {
     }()
 
     let disposeBag = DisposeBag()
-    let viewModel: MainViewModel  // = MainViewModel()
+    let viewModel: MainViewModel
 
     init() {
 
@@ -59,7 +59,7 @@ class MainViewController: UIViewController {
             target: self,
             action: #selector(newTodoTap)
         )
-        
+
         self.view.addSubview(self.table)
         self.view.addSubview(self.noListLabel)
         self.view.addSubview(self.loadingIndicator)
@@ -74,7 +74,7 @@ class MainViewController: UIViewController {
         self.noListLabel.snp.makeConstraints { make in
             make.center.equalTo(self.view.safeAreaLayoutGuide)
         }
-        
+
         self.bindLoading()
         self.bindTableView()
         self.bindNoListLabel()
@@ -100,12 +100,11 @@ class MainViewController: UIViewController {
 
         self.viewModel.output.items
             .drive(
-                table.rx.items(cellIdentifier: "cell", cellType: UITableViewCell.self)
-            ) { row, product, cell in
-                cell.textLabel?.text = product.title
-                cell.detailTextLabel?.text = product.date.description
-            }
+                table.rx.items(
+                    cellIdentifier: reuseIdentifier, cellType: TodoCell.self)
+            ) { r, p, c in c.todoModel = p }
             .disposed(by: disposeBag)
+
     }
 
     private func bindNoListLabel() {
@@ -116,14 +115,13 @@ class MainViewController: UIViewController {
             .disposed(by: disposeBag)
 
     }
-    
+
     // TODO: Coordinator 패턴 적용하기
-    @objc private func newTodoTap(){
+    @objc private func newTodoTap() {
         let newVC = EditableTodoDIContainer().makeCreateTodoVC(.mock)
         let modalNavi = UINavigationController(rootViewController: newVC)
         self.navigationController?.present(modalNavi, animated: true)
 
-        
         newVC.writtenTodo.subscribe(onNext: { [weak self] todo in
             self?.viewModel.createTodoListItem(todo: todo)
         }).disposed(by: disposeBag)
