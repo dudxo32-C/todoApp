@@ -15,13 +15,8 @@ import UIKit
 private let reuseIdentifier = "CustomCell"
 
 class MainViewController: UIViewController {
-    let table = UITableView().then {
+    private let tableView = UITableView().then {
         $0.register(TodoCell.self, forCellReuseIdentifier: reuseIdentifier)
-        $0.isHidden = true
-    }
-
-    let buton = UIButton().then {
-        $0.backgroundColor = .black
     }
 
     private let loadingIndicator = LoadingIndicator()
@@ -37,11 +32,9 @@ class MainViewController: UIViewController {
     }()
 
     let disposeBag = DisposeBag()
-    let viewModel: MainViewModel
+    let viewModel = MainViewModel()
 
     init() {
-
-        viewModel = MainViewModel()
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -52,6 +45,9 @@ class MainViewController: UIViewController {
 
     override func viewDidLoad() {
         self.title = I18N.todo
+
+        self.tableView.delegate = self
+
         // ✅ 오른쪽 버튼 추가
         navigationItem.rightBarButtonItem = UIBarButtonItem(
             image: UIImage.add,
@@ -60,24 +56,25 @@ class MainViewController: UIViewController {
             action: #selector(newTodoTap)
         )
 
-        self.view.addSubview(self.table)
-        self.view.addSubview(self.noListLabel)
+        self.view.addSubview(self.tableView)
+
+        tableView.backgroundView = noListLabel
+        tableView.backgroundView?.isHidden = true
+
         self.view.addSubview(self.loadingIndicator)
 
-        self.table.snp.makeConstraints { make in
+        self.tableView.snp.makeConstraints { make in
             make.top.equalTo(self.view.safeAreaLayoutGuide).offset(24)
             make.left.right.equalTo(self.view.safeAreaLayoutGuide).inset(
                 C_margin16)
             make.bottom.equalTo(self.view.safeAreaLayoutGuide)
         }
 
-        self.noListLabel.snp.makeConstraints { make in
-            make.center.equalTo(self.view.safeAreaLayoutGuide)
-        }
-
         self.bindLoading()
         self.bindTableView()
         self.bindNoListLabel()
+        
+        viewModel.input.fetchItems.accept(())
     }
 
     private func bindLoading() {
@@ -87,33 +84,35 @@ class MainViewController: UIViewController {
     }
 
     private func bindTableView() {
-        let isErrorObservable = viewModel.output.error.map { $0 != nil }
-            .asObservable()
-        let isFetchingOvservable = self.viewModel.output.isFetching
-            .asObservable()
-
-        Observable.zip(isFetchingOvservable, isErrorObservable)
-            .map { $0 || $1 }
-            .asDriver(onErrorJustReturn: false)
-            .drive(self.table.rx.isHidden)
-            .disposed(by: disposeBag)
-
         self.viewModel.output.items
             .drive(
-                table.rx.items(
+                tableView.rx.items(
                     cellIdentifier: reuseIdentifier, cellType: TodoCell.self)
-            ) { r, p, c in c.todoModel = p }
+            ) { r, p, c in
+                print(p)
+                c.todoModel = p
+            }
             .disposed(by: disposeBag)
-
     }
 
     private func bindNoListLabel() {
-        self.viewModel.output.error
-            .map { $0 as? ToDoListError != ToDoListError.noItems }
-            .asDriver()
-            .drive(noListLabel.rx.isHidden)
-            .disposed(by: disposeBag)
+        let isFetching = self.viewModel.output
+            .isFetching
+            .asObservable()
 
+        let isEmptyItems = viewModel.output.items
+            .map { $0.isEmpty }
+            .asObservable()
+
+        Observable.combineLatest(isFetching, isEmptyItems)
+            .map { isFetching, isEmpty in
+                return isFetching || !isEmpty
+            }
+            .asDriver(onErrorJustReturn: false)
+            .drive { [weak self] isHidden in
+                self?.tableView.backgroundView?.isHidden = isHidden
+            }
+            .disposed(by: disposeBag)
     }
 
     // TODO: Coordinator 패턴 적용하기
@@ -123,7 +122,30 @@ class MainViewController: UIViewController {
         self.navigationController?.present(modalNavi, animated: true)
 
         newVC.writtenTodo.subscribe(onNext: { [weak self] todo in
-            self?.viewModel.createTodoListItem(todo: todo)
+            print(todo)
+            self?.viewModel.input.addItem.accept(todo)
         }).disposed(by: disposeBag)
+    }
+}
+
+extension MainViewController: UITableViewDelegate {
+    func tableView(
+        _ tableView: UITableView,
+        trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath
+    )
+        -> UISwipeActionsConfiguration?
+    {
+
+        let deleteAction = UIContextualAction(style: .destructive, title: nil) {
+            [weak self] _, _, completionHandler in
+
+            let cell = tableView.cellForRow(at: indexPath) as! TodoCell
+            self?.viewModel.input.tapDelete.accept(cell.todoModel)
+
+            completionHandler(true)
+        }
+        deleteAction.image = UIImage(systemName: "trash")
+
+        return UISwipeActionsConfiguration(actions: [deleteAction])
     }
 }

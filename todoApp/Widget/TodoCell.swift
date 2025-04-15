@@ -94,7 +94,7 @@ class TodoCell: UITableViewCell {
 
         hStack.snp.makeConstraints {
             $0.top.equalToSuperview().inset(8)
-            $0.leading.trailing.equalToSuperview()
+            $0.leading.trailing.equalToSuperview().inset(C_margin16)
         }
 
         self.dateLabel.snp.makeConstraints { make in
@@ -103,7 +103,7 @@ class TodoCell: UITableViewCell {
 
         self.desLabel.snp.makeConstraints {
             $0.top.equalTo(hStack.snp.bottom).offset(8)
-            $0.leading.trailing.equalToSuperview()
+            $0.leading.trailing.equalToSuperview().inset(C_margin16)
             $0.bottom.equalToSuperview().inset(8)
         }
     }
