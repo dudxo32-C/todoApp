@@ -32,11 +32,9 @@ class MainViewController: UIViewController {
     }()
 
     let disposeBag = DisposeBag()
-    let viewModel: MainViewModel
+    let viewModel = MainViewModel()
 
     init() {
-
-        viewModel = MainViewModel()
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -75,6 +73,8 @@ class MainViewController: UIViewController {
         self.bindLoading()
         self.bindTableView()
         self.bindNoListLabel()
+        
+        viewModel.input.fetchItems.accept(())
     }
 
     private func bindLoading() {
@@ -88,7 +88,10 @@ class MainViewController: UIViewController {
             .drive(
                 tableView.rx.items(
                     cellIdentifier: reuseIdentifier, cellType: TodoCell.self)
-            ) { r, p, c in c.todoModel = p }
+            ) { r, p, c in
+                print(p)
+                c.todoModel = p
+            }
             .disposed(by: disposeBag)
     }
 
@@ -101,15 +104,13 @@ class MainViewController: UIViewController {
             .map { $0.isEmpty }
             .asObservable()
 
-        Observable.zip(isFetching, isEmptyItems)
-            .map { $0 || $1 }
+        Observable.combineLatest(isFetching, isEmptyItems)
+            .map { isFetching, isEmpty in
+                return isFetching || !isEmpty
+            }
             .asDriver(onErrorJustReturn: false)
-            .drive(self.tableView.rx.isHidden)
-            .disposed(by: disposeBag)
-        
-        viewModel.output.items
-            .drive { [weak self] items in
-                self?.tableView.backgroundView?.isHidden = !items.isEmpty
+            .drive { [weak self] isHidden in
+                self?.tableView.backgroundView?.isHidden = isHidden
             }
             .disposed(by: disposeBag)
     }
@@ -121,7 +122,8 @@ class MainViewController: UIViewController {
         self.navigationController?.present(modalNavi, animated: true)
 
         newVC.writtenTodo.subscribe(onNext: { [weak self] todo in
-            self?.viewModel.createTodoListItem(todo: todo)
+            print(todo)
+            self?.viewModel.input.addItem.accept(todo)
         }).disposed(by: disposeBag)
     }
 }
