@@ -52,6 +52,9 @@ class MainViewController: UIViewController {
 
     override func viewDidLoad() {
         self.title = I18N.todo
+        
+        self.table.delegate = self
+        
         // ✅ 오른쪽 버튼 추가
         navigationItem.rightBarButtonItem = UIBarButtonItem(
             image: UIImage.add,
@@ -126,4 +129,28 @@ class MainViewController: UIViewController {
             self?.viewModel.createTodoListItem(todo: todo)
         }).disposed(by: disposeBag)
     }
+}
+
+extension MainViewController: UITableViewDelegate {
+    func tableView(_ tableView: UITableView,
+                   trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath)
+    -> UISwipeActionsConfiguration? {
+
+        let deleteAction = UIContextualAction(style: .destructive, title: nil) { [weak self] _, _, completionHandler in
+            
+            let model = tableView.cellForRow(at: indexPath) as! TodoCell
+            self?.viewModel.deleteTodo(todo: model.todoModel)
+            completionHandler(true)
+        }
+        deleteAction.image = UIImage(systemName: "trash")
+        
+        return UISwipeActionsConfiguration(actions: [deleteAction])
+    }
+    
+    
+//    func deleteItem(at indexPath: IndexPath) {
+//        var current = itemsRelay.value
+//        current.remove(at: indexPath.row)
+//        itemsRelay.accept(current)
+//    }
 }

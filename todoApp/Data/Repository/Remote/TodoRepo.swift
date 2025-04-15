@@ -184,7 +184,7 @@ class MockTodoDS: TodoDS {
             try realm.delete(target)
         }
 
-        return target._id
+        return id
 
     }
 

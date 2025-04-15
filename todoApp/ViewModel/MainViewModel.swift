@@ -48,13 +48,6 @@ class MainViewModel: ViewModelProtocol {
     }
 
     func fetch() {
-        
-//        try! Realm().write {
-//            
-//            try Realm().add(TodoRealm(title: "title", date: Date(), contents: "contents"))
-//        }
-//        
-//        print(Realm.Configuration.defaultConfiguration.fileURL?.absoluteString ?? "")
         Task {
             self.fetchRelay.accept(true)
 
@@ -79,5 +72,21 @@ class MainViewModel: ViewModelProtocol {
     func createTodoListItem(todo:TodoModelProtocol) {
         let arr = self.itemsRelay.value + [todo]
         self.itemsRelay.accept(arr)
+    }
+    
+    func deleteTodo(todo:TodoModelProtocol) {
+//        self.fetchRelay.accept(true)
+
+        Task {
+            do {
+                let removedItemID = try await repo.deleteTodo(id: todo.id)
+                let arr = self.itemsRelay.value.filter { $0.id != removedItemID }
+                self.itemsRelay.accept(arr)
+            } catch {
+                print(error)
+            }
+            
+//            self.fetchRelay.accept(false)
+        }
     }
 }
