@@ -6,18 +6,18 @@
 //
 
 import Foundation
+import RealmSwift
 import RxCocoa
 import RxRelay
 import RxSwift
-import RealmSwift
 
 enum ToDoListError: Error {
-    case noItems
+//    case noItems
 }
 
 class MainViewModel: ViewModelProtocol {
     struct Input {
-        //        let click:PublishRelay<Void>
+        let tapDelete: PublishRelay<TodoModelProtocol>
     }
     struct Output {
         let isFetching: Driver<Bool>
@@ -31,62 +31,74 @@ class MainViewModel: ViewModelProtocol {
     var disposeBag = DisposeBag()
     let repo = TodoRepo(MockTodoDS())
 
-    private let fetchRelay = BehaviorRelay(value: false)
+    private let loadingRelay = BehaviorRelay(value: false)
     private let errorRelay = BehaviorRelay<Error?>(value: nil)
     private let itemsRelay = BehaviorRelay<[TodoModelProtocol]>(value: [])
+    
     init() {
-        self.input = Input()
+        self.input = Input(
+            tapDelete: PublishRelay()
+        )
 
         self.output = Output(
-            isFetching: self.fetchRelay.asDriver(),
+            isFetching: self.loadingRelay.asDriver(),
             items: itemsRelay.asDriver(),
             error: errorRelay.asDriver()
         )
 
         fetch()
 
+        handleDelete()
     }
 
     func fetch() {
         Task {
-            self.fetchRelay.accept(true)
+            self.loadingRelay.accept(true)
 
             do {
                 let response = try await repo.fetchTodoList()
-                if response.isEmpty {
-                    self.errorRelay.accept(ToDoListError.noItems)
-                } else {
-                    self.errorRelay.accept(nil)
-                    self.itemsRelay.accept(response)
-                }
+                self.itemsRelay.accept(response)
             } catch {
-                print(error)
-//                self.errorRelay.accept(ToDoListError.noItems)
                 self.errorRelay.accept(error)
             }
 
-            self.fetchRelay.accept(false)
+            self.loadingRelay.accept(false)
         }
     }
-    
-    func createTodoListItem(todo:TodoModelProtocol) {
+
+    func createTodoListItem(todo: TodoModelProtocol) {
         let arr = self.itemsRelay.value + [todo]
         self.itemsRelay.accept(arr)
     }
-    
-    func deleteTodo(todo:TodoModelProtocol) {
-//        self.fetchRelay.accept(true)
 
-        Task {
-            do {
-                let removedItemID = try await repo.deleteTodo(id: todo.id)
-                let arr = self.itemsRelay.value.filter { $0.id != removedItemID }
-                self.itemsRelay.accept(arr)
-            } catch {
-                print(error)
+    private func handleDelete() {
+        self.input.tapDelete
+            .flatMap { self.deleteTodo(todo: $0) }
+            .map { removedID in
+                let arr = self.itemsRelay.value.filter {
+                    $0.id != removedID
+                }
+
+                return arr
             }
-            
-//            self.fetchRelay.accept(false)
+            .bind(to: self.itemsRelay)
+            .disposed(by: self.disposeBag)
+    }
+
+    private func deleteTodo(todo: TodoModelProtocol) -> Single<String> {
+        return .create { [weak self] single in
+            guard let self = self else { preconditionFailure("self 가 없습니다") }
+
+            Task {
+                do {
+                    let id = try await self.repo.deleteTodo(todo.id)
+                    single(.success(id))
+                } catch {
+                    single(.failure(error))
+                }
+            }
+
+            return Disposables.create()
         }
     }
 }
