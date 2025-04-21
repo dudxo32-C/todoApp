@@ -11,4 +11,8 @@ struct I18N {
     static let noList = "noList".localized
     /// 날짜를 선택하세요
     static let selectDate = "selectDate".localized
+    /// 오늘
+    static let today = "today".localized
+    /// 이후
+    static let future = "future".localized
 }

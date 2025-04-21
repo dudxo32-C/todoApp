@@ -22,7 +22,7 @@
 		04457F1528A6050B00AF2EBB /* RxBlocking in Frameworks */ = {isa = PBXBuildFile; productRef = 04457F1428A6050B00AF2EBB /* RxBlocking */; };
 		04457F1728A6050F00AF2EBB /* RxTest in Frameworks */ = {isa = PBXBuildFile; productRef = 04457F1628A6050F00AF2EBB /* RxTest */; };
 		C9083E9628E077EF006DEF47 /* UIColorEx.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9083E9528E077EF006DEF47 /* UIColorEx.swift */; };
-		C9083E9828E07AC6006DEF47 /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9083E9728E07AC6006DEF47 /* MainViewController.swift */; };
+		C9083E9828E07AC6006DEF47 /* TodoListVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9083E9728E07AC6006DEF47 /* TodoListVC.swift */; };
 		C9083E9B28E08304006DEF47 /* Constant.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9083E9A28E08304006DEF47 /* Constant.swift */; };
 		C90E48512D6D50C600FA6A81 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = C90E48502D6D50C600FA6A81 /* Alamofire */; };
 		C90E48542D6D537C00FA6A81 /* NetworkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C90E48532D6D537C00FA6A81 /* NetworkManager.swift */; };
@@ -83,7 +83,7 @@
 		04457EF128A6033F00AF2EBB /* todoAppUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = todoAppUITests.swift; sourceTree = "<group>"; };
 		04457EF328A6033F00AF2EBB /* todoAppUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = todoAppUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		C9083E9528E077EF006DEF47 /* UIColorEx.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIColorEx.swift; sourceTree = "<group>"; };
-		C9083E9728E07AC6006DEF47 /* MainViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
+		C9083E9728E07AC6006DEF47 /* TodoListVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoListVC.swift; sourceTree = "<group>"; };
 		C9083E9A28E08304006DEF47 /* Constant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constant.swift; sourceTree = "<group>"; };
 		C90E48532D6D537C00FA6A81 /* NetworkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkManager.swift; sourceTree = "<group>"; };
 		C92513552D782346004E2D5B /* TodoTarget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoTarget.swift; sourceTree = "<group>"; };
@@ -246,7 +246,7 @@
 		C92513582D782C7A004E2D5B /* View */ = {
 			isa = PBXGroup;
 			children = (
-				C9083E9728E07AC6006DEF47 /* MainViewController.swift */,
+				C9083E9728E07AC6006DEF47 /* TodoListVC.swift */,
 				C97BA7382D91486800C43CB9 /* EditableTodoVC.swift */,
 			);
 			path = View;
@@ -539,7 +539,7 @@
 				C97BA7392D91486800C43CB9 /* EditableTodoVC.swift in Sources */,
 				C9E4A8AD28EAF24D0002FA8F /* ViewModelProtocol.swift in Sources */,
 				C9AFC9C82DACDD8C0083D50B /* TodoCell.swift in Sources */,
-				C9083E9828E07AC6006DEF47 /* MainViewController.swift in Sources */,
+				C9083E9828E07AC6006DEF47 /* TodoListVC.swift in Sources */,
 				C9083E9B28E08304006DEF47 /* Constant.swift in Sources */,
 				C9E538312DA5178B00D529D8 /* AppDIContainer.swift in Sources */,
 				C95B652D2D9E828900F05436 /* StringEX.swift in Sources */,
