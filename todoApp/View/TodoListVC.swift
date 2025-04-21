@@ -32,6 +32,11 @@ class TodoListVC: UIViewController {
     }()
 
     private let tabBar = UITabBar().then {
+        let pastItem = UITabBarItem(
+            title: I18N.past, image: UIImage(systemName: "arrow.left.circle"),
+            tag: 2
+        )
+        
         let todayItem = UITabBarItem(
             title: I18N.today, image: UIImage(systemName: "calendar.circle"),
             tag: 0
@@ -43,7 +48,7 @@ class TodoListVC: UIViewController {
             tag: 1
         )
 
-        $0.items = [todayItem, futureItem]
+        $0.items = [pastItem, todayItem, futureItem]
         $0.selectedItem = todayItem
 
         let appearanceTabbar = UITabBarAppearance()
@@ -186,6 +191,8 @@ extension TodoListVC: UITabBarDelegate {
             viewModel.input.tapFilter.accept(.today)
         case 1:
             viewModel.input.tapFilter.accept(.future)
+        case 2:
+            viewModel.input.tapFilter.accept(.past)
         default:
             break
         }

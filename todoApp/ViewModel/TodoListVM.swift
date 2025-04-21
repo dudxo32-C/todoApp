@@ -17,7 +17,7 @@ enum ToDoListError: Error {
 }
 
 enum TodoFilterType {
-    case today, future
+    case past, today, future
 }
 
 class TodoListVM: ViewModelProtocol {
@@ -27,7 +27,7 @@ class TodoListVM: ViewModelProtocol {
         let tapDelete: PublishRelay<TodoModelProtocol>
         let tapFilter: PublishRelay<TodoFilterType>
     }
-    
+
     struct Output {
         let isFetching: Driver<Bool>
         let items: Driver<[TodoModelProtocol]>
@@ -73,7 +73,7 @@ class TodoListVM: ViewModelProtocol {
         handleAddItem()
         handleDeleteItem()
     }
-    
+
     private func transform() -> Output {
         return Output(
             isFetching: isfetchingRelay.asDriver(),
@@ -81,22 +81,17 @@ class TodoListVM: ViewModelProtocol {
             error: errorRelay.asDriver()
         )
     }
-    
+
     // view 에서 사용할 items
     private func makeItemsDriver() -> Driver<[TodoModelProtocol]> {
         return Observable.combineLatest(
             selectedFilter.asObservable(), cachedGroup.asObservable()
         ).map { (filter, group) in
-            switch filter {
-            case .today:
-                return group[.today] ?? []
-            case .future:
-                return group[.future] ?? []
-            }
+            return group[filter] ?? []
         }
         .asDriver(onErrorJustReturn: [])
     }
-    
+
     // MARK: - Binding
     // 탭 클릭 데이터 저장
     private func bindSelectedFilter() {
@@ -174,7 +169,7 @@ class TodoListVM: ViewModelProtocol {
             .bind(to: self.cachedGroup)
             .disposed(by: self.disposeBag)
     }
-    
+
     // MARK: - async
     private func fetchItems() -> Single<[TodoModelProtocol]> {
         self.isfetchingRelay.accept(true)
@@ -199,7 +194,7 @@ class TodoListVM: ViewModelProtocol {
             }
         }
     }
-    
+
     private func deleteTodo(todo: TodoModelProtocol) -> Single<
         TodoModelProtocol
     > {
@@ -221,8 +216,17 @@ class TodoListVM: ViewModelProtocol {
 
     // MARK: -
     private func getDateFilter(_ todo: TodoModelProtocol) -> TodoFilterType {
-        return Calendar.current.isDateInToday(todo.date)
-            ? TodoFilterType.today : TodoFilterType.future
+        let comparison = Calendar.current.compare(
+            todo.date, to: Date(), toGranularity: .day)
+
+        switch comparison {
+        case .orderedAscending:
+            return TodoFilterType.past
+        case .orderedSame:
+            return TodoFilterType.today
+        case .orderedDescending:
+            return TodoFilterType.future
+        }
     }
 
     private func changeGroupItem(
@@ -235,9 +239,6 @@ class TodoListVM: ViewModelProtocol {
     }
 
     private func makeGroup(_ items: [TodoModelProtocol]) -> TodoGroup {
-        return Dictionary(grouping: items) { todo in
-            Calendar.current.isDateInToday(todo.date)
-                ? TodoFilterType.today : TodoFilterType.future
-        }
+        return Dictionary(grouping: items, by: getDateFilter(_:))
     }
 }

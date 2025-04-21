@@ -13,6 +13,8 @@ struct I18N {
     static let selectDate = "selectDate".localized
     /// 오늘
     static let today = "today".localized
-    /// 이후
+    /// 미래
     static let future = "future".localized
+    /// 과거
+    static let past = "past".localized
 }
