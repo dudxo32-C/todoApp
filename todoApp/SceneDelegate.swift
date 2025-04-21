@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import RealmSwift
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
@@ -24,7 +25,16 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
         window?.makeKeyAndVisible()
 //        mainVC.present(ViewController(), animated: false)
-
+#if DEBUG
+        var config = Realm.Configuration()
+        config.fileURL = FileManager.default
+            .containerURL(forSecurityApplicationGroupIdentifier: "com.yt.todoApp")!
+            .appendingPathComponent("default.realm")
+        
+        Realm.Configuration.defaultConfiguration = config
+        
+        print(config.fileURL ?? "")
+#endif
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {

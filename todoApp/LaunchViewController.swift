@@ -30,7 +30,7 @@ class LaunchViewController: UIViewController {
             self.view.alpha = 0
         } completion: { bool in
             self.dismiss(animated: false)
-            let moveVC = MainViewController()
+            let moveVC = TodoListVC()
             let naviController = UINavigationController(rootViewController: moveVC)
             naviController.view.backgroundColor = .white
 

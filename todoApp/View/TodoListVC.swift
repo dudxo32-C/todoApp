@@ -14,7 +14,7 @@ import UIKit
 
 private let reuseIdentifier = "CustomCell"
 
-class MainViewController: UIViewController {
+class TodoListVC: UIViewController {
     private let tableView = UITableView().then {
         $0.register(TodoCell.self, forCellReuseIdentifier: reuseIdentifier)
     }
@@ -31,8 +31,35 @@ class MainViewController: UIViewController {
         return label
     }()
 
+    private let tabBar = UITabBar().then {
+        let pastItem = UITabBarItem(
+            title: I18N.past, image: UIImage(systemName: "arrow.left.circle"),
+            tag: 2
+        )
+        
+        let todayItem = UITabBarItem(
+            title: I18N.today, image: UIImage(systemName: "calendar.circle"),
+            tag: 0
+        )
+        
+        let futureItem = UITabBarItem(
+            title: I18N.future,
+            image: UIImage(systemName: "arrow.right.circle"),
+            tag: 1
+        )
+
+        $0.items = [pastItem, todayItem, futureItem]
+        $0.selectedItem = todayItem
+
+        let appearanceTabbar = UITabBarAppearance()
+        appearanceTabbar.configureWithOpaqueBackground()
+        appearanceTabbar.backgroundColor = UIColor.white
+        $0.standardAppearance = appearanceTabbar
+    }
+    let viewModel = TodoListVM(TodoFilterType.today)
+
+    // MARK: - RX
     let disposeBag = DisposeBag()
-    let viewModel = MainViewModel()
 
     init() {
         super.init(nibName: nil, bundle: nil)
@@ -46,7 +73,8 @@ class MainViewController: UIViewController {
     override func viewDidLoad() {
         self.title = I18N.todo
 
-        self.tableView.delegate = self
+        tableView.delegate = self
+        tabBar.delegate = self
 
         // ✅ 오른쪽 버튼 추가
         navigationItem.rightBarButtonItem = UIBarButtonItem(
@@ -58,6 +86,7 @@ class MainViewController: UIViewController {
 
         self.view.addSubview(self.tableView)
 
+        view.addSubview(tabBar)
         tableView.backgroundView = noListLabel
         tableView.backgroundView?.isHidden = true
 
@@ -67,16 +96,21 @@ class MainViewController: UIViewController {
             make.top.equalTo(self.view.safeAreaLayoutGuide).offset(24)
             make.left.right.equalTo(self.view.safeAreaLayoutGuide).inset(
                 C_margin16)
-            make.bottom.equalTo(self.view.safeAreaLayoutGuide)
+            make.bottom.equalTo(tabBar.snp.top)
+        }
+
+        tabBar.snp.makeConstraints { make in
+            make.bottom.left.right.equalTo(self.view.safeAreaLayoutGuide)
         }
 
         self.bindLoading()
         self.bindTableView()
         self.bindNoListLabel()
-        
+
         viewModel.input.fetchItems.accept(())
     }
 
+    // MARK: - Binding
     private func bindLoading() {
         self.viewModel.output.isFetching
             .drive(loadingIndicator.rx.isAnimating)
@@ -84,13 +118,12 @@ class MainViewController: UIViewController {
     }
 
     private func bindTableView() {
-        self.viewModel.output.items
+        viewModel.output.items
             .drive(
                 tableView.rx.items(
                     cellIdentifier: reuseIdentifier, cellType: TodoCell.self)
-            ) { r, p, c in
-                print(p)
-                c.todoModel = p
+            ) { (row, element, cell) in
+                cell.todoModel = element
             }
             .disposed(by: disposeBag)
     }
@@ -115,6 +148,7 @@ class MainViewController: UIViewController {
             .disposed(by: disposeBag)
     }
 
+    // MARK: -
     // TODO: Coordinator 패턴 적용하기
     @objc private func newTodoTap() {
         let newVC = EditableTodoDIContainer().makeCreateTodoVC(.mock)
@@ -128,7 +162,7 @@ class MainViewController: UIViewController {
     }
 }
 
-extension MainViewController: UITableViewDelegate {
+extension TodoListVC: UITableViewDelegate {
     func tableView(
         _ tableView: UITableView,
         trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath
@@ -147,5 +181,20 @@ extension MainViewController: UITableViewDelegate {
         deleteAction.image = UIImage(systemName: "trash")
 
         return UISwipeActionsConfiguration(actions: [deleteAction])
+    }
+}
+
+extension TodoListVC: UITabBarDelegate {
+    func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) {
+        switch item.tag {
+        case 0:
+            viewModel.input.tapFilter.accept(.today)
+        case 1:
+            viewModel.input.tapFilter.accept(.future)
+        case 2:
+            viewModel.input.tapFilter.accept(.past)
+        default:
+            break
+        }
     }
 }

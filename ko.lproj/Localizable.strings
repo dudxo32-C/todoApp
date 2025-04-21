@@ -12,3 +12,6 @@ editTodo = "Todo 수정";
 done = "완료";
 noList = "리스트가 없습니다";
 selectDate = "날짜를 선택하세요";
+today = "오늘";
+future = "미래";
+past = "과거";
