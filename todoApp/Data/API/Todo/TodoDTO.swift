@@ -13,4 +13,5 @@ struct TodoResponseDTO: Codable {
     let title: String
     let date: Date
     let contents: String
+    let isDone: Bool
 }

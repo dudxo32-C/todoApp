@@ -42,7 +42,8 @@ class TodoRepo {
                 id: res.id,
                 title: res.title,
                 date: res.date,
-                contents: res.contents
+                contents: res.contents,
+                isDone: res.isDone
             )
         }
     }
@@ -60,7 +61,8 @@ class TodoRepo {
             id: response.id,
             title: response.title,
             date: response.date,
-            contents: response.contents
+            contents: response.contents,
+            isDone: response.isDone
         )
     }
 
@@ -83,7 +85,8 @@ class TodoRepo {
             id: response.id,
             title: response.title,
             date: response.date,
-            contents: response.contents
+            contents: response.contents,
+            isDone: response.isDone
         )
     }
 
@@ -153,7 +156,8 @@ class MockTodoDS: TodoDS {
                 id: $0._id,
                 title: $0.title,
                 date: $0.date,
-                contents: $0.contents
+                contents: $0.contents,
+                isDone: $0.isDone
             )
         }
     }
@@ -173,7 +177,8 @@ class MockTodoDS: TodoDS {
             id: newTodo._id,
             title: newTodo.title,
             date: newTodo.date,
-            contents: newTodo.contents
+            contents: newTodo.contents,
+            isDone: newTodo.isDone
         )
     }
 
@@ -198,13 +203,15 @@ class MockTodoDS: TodoDS {
             target.title = todo.title
             target.date = todo.date
             target.contents = todo.contents
+            target.isDone = todo.isDone
         }
 
         return TodoResponseDTO(
             id: todo.id,
             title: todo.title,
             date: todo.date,
-            contents: todo.contents
+            contents: todo.contents,
+            isDone: todo.isDone
         )
 
     }

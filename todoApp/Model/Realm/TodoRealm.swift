@@ -14,6 +14,8 @@ class TodoRealm: Object {
     @Persisted var title: String
     @Persisted var date: Date
     @Persisted var contents: String
+    @Persisted var isDone: Bool
+
     
     convenience init(title: String, date: Date, contents: String) {
         self.init()
@@ -21,5 +23,6 @@ class TodoRealm: Object {
         self.title = title
         self.date = date
         self.contents = contents
+        self.isDone = false
     }
 }
