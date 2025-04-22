@@ -78,7 +78,7 @@ class TodoRepo {
     /// 할일 목록 수정하기
     /// - Throws: ``NetworkError``, ``TodoError``
     /// - Returns: `Todo` 데이터 모델
-    func updateTodo(todo: TodoModelProtocol) async throws -> TodoModelProtocol {
+    func updateTodo(_ todo: TodoModelProtocol) async throws -> TodoModelProtocol {
         let response = try await dataSource.updateTodo(todo: todo)
         
         return TodoModel(

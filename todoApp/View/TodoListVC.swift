@@ -107,6 +107,7 @@ class TodoListVC: UIViewController {
         self.bindTableView()
         self.bindNoListLabel()
 
+        
         viewModel.input.fetchItems.accept(())
     }
 
@@ -123,7 +124,14 @@ class TodoListVC: UIViewController {
                 tableView.rx.items(
                     cellIdentifier: reuseIdentifier, cellType: TodoCell.self)
             ) { (row, element, cell) in
+                cell.rx.doneTap
+                    .map { cell.todoModel }
+                    .bind(to: self.viewModel.input.tapDone)
+                    .disposed(by: cell.disposeBag)
+                
                 cell.todoModel = element
+                
+                
             }
             .disposed(by: disposeBag)
     }
@@ -156,7 +164,6 @@ class TodoListVC: UIViewController {
         self.navigationController?.present(modalNavi, animated: true)
 
         newVC.writtenTodo.subscribe(onNext: { [weak self] todo in
-            print(todo)
             self?.viewModel.input.addItem.accept(todo)
         }).disposed(by: disposeBag)
     }

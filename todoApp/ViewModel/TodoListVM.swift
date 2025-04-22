@@ -26,6 +26,7 @@ class TodoListVM: ViewModelProtocol {
         let addItem: PublishRelay<TodoModelProtocol>
         let tapDelete: PublishRelay<TodoModelProtocol>
         let tapFilter: PublishRelay<TodoFilterType>
+        let tapDone: PublishRelay<TodoModelProtocol>
     }
 
     struct Output {
@@ -60,7 +61,8 @@ class TodoListVM: ViewModelProtocol {
             fetchItems: PublishRelay(),
             addItem: PublishRelay(),
             tapDelete: PublishRelay(),
-            tapFilter: PublishRelay()
+            tapFilter: PublishRelay(),
+            tapDone: PublishRelay()
         )
 
         self.selectedFilter = .init(value: selectedFilter)
@@ -69,7 +71,8 @@ class TodoListVM: ViewModelProtocol {
 
         bindAllItems()
         bindCacheGroup()
-
+        bindDoneTap()
+        
         handleAddItem()
         handleDeleteItem()
     }
@@ -123,6 +126,14 @@ class TodoListVM: ViewModelProtocol {
             .disposed(by: disposeBag)
     }
 
+    private func bindDoneTap() {
+        input.tapDone
+            .withUnretained(self)
+            .flatMap { (vm, value) in vm.handleDoneToggle(value) }
+            .bind(to: self.allItems)
+            .disposed(by: self.disposeBag)
+    }
+
     // MARK: - handle
     private func handleAddItem() {
         self.input.addItem
@@ -170,6 +181,24 @@ class TodoListVM: ViewModelProtocol {
             .disposed(by: self.disposeBag)
     }
 
+    private func handleDoneToggle(_ todo: TodoModelProtocol) -> Single<[TodoModelProtocol]> {
+        let toggled = todo.copyWith(isDone: !todo.isDone)
+        
+        return updateDone(targetTodo: toggled).map { newValue in
+            var currentAll = self.allItems.value
+            guard
+                let targetIndex = currentAll.firstIndex(where: {
+                    $0.id == newValue.id
+                })
+            else {
+                return currentAll
+            }
+            currentAll[targetIndex] = newValue
+
+            return currentAll
+        }
+    }
+
     // MARK: - async
     private func fetchItems() -> Single<[TodoModelProtocol]> {
         self.isfetchingRelay.accept(true)
@@ -212,6 +241,27 @@ class TodoListVM: ViewModelProtocol {
 
             return Disposables.create()
         }
+    }
+
+    private func updateDone(targetTodo target: TodoModelProtocol) -> Single<
+        TodoModelProtocol
+    > {
+        return .create { [weak self] single in
+            guard let self = self else { preconditionFailure("self 가 없습니다") }
+
+            Task {
+                do {
+                    let updated = try await self.repo.updateTodo(target)
+
+                    single(.success(updated))
+                } catch {
+                    single(.failure(error))
+                }
+            }
+
+            return Disposables.create()
+        }
+
     }
 
     // MARK: -
