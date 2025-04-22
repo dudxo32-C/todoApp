@@ -206,7 +206,7 @@ class EditTodoVM: EditableTodoVM {
                         contents: contents
                     )
 
-                    let response = try await self.repo.updateTodo(todo: newTodo)
+                    let response = try await self.repo.updateTodo(newTodo)
 
                     single(.success(TodoModel(response)))
                 } catch {

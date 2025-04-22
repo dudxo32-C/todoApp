@@ -33,9 +33,11 @@ class TodoCell: UITableViewCell {
         $0.lineBreakMode = .byTruncatingTail
     }
 
+    fileprivate var doneButton = CircularCheckButton()
+
     // MARK: - Get/Set
     private var _model: TodoModelProtocol?
-    
+
     var todoModel: TodoModelProtocol {
         get {
             guard let model = self._model else {
@@ -48,41 +50,59 @@ class TodoCell: UITableViewCell {
         set {
             self._model = newValue
 
-            Observable.just(newValue.title)
-                .bind(to: self.titleLabel.rx.text)
-                .disposed(by: self.disposedBag)
+            titleLabel.text = newValue.title
 
-            Observable.just(newValue.contents)
-                .bind(to: self.desLabel.rx.text)
-                .disposed(by: self.disposedBag)
+            desLabel.text = newValue.contents
 
-            Observable.just(newValue.date)
-                .map { date in
-                    let formatter = DateFormatter()
-                    formatter.dateFormat = "yyyy/MM/dd"
-                    formatter.locale = Locale(identifier: "ko")
+            let formatter = DateFormatter()
+            formatter.dateFormat = "yyyy/MM/dd"
+            formatter.locale = Locale(identifier: "ko")
 
-                    let str = formatter.string(from: date)
+            let str = formatter.string(from: newValue.date)
+            dateLabel.text = str
 
-                    return str
-                }
-                .bind(to: self.dateLabel.rx.text)
-                .disposed(by: self.disposedBag)
+            doneButton.isDone = newValue.isDone
+            print(newValue)
         }
     }
     // MARK: - RX
-    private let disposedBag = DisposeBag()
+    var disposeBag = DisposeBag()
+
     // MARK: -
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
+
         self.setupViews()
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    // MARK: -
+    // MARK: - Binding
+    private func bindDoneButton() {
+        doneButton.isDoneChanged
+            .withUnretained(self)
+            .bind { (self, isDone) in
+                print("bind : \(isDone)")
+                let color = isDone ? UIColor.systemGray3 : UIColor.black
+                self.titleLabel.textColor = color
+                self.desLabel.textColor = color
+                self.dateLabel.textColor = color
+            }
+            .disposed(by: disposeBag)
+
+    }
+    
+    // MARK: - SetUI
     private func setupViews() {
+        contentView.addSubview(doneButton)
+
+        doneButton.snp.makeConstraints {
+            $0.width.height.equalTo(30)
+            $0.leading.equalToSuperview()
+            $0.centerY.equalToSuperview()
+        }
+
         let hStack = UIStackView(arrangedSubviews: [titleLabel, dateLabel]).then
         {
             $0.axis = .horizontal
@@ -94,7 +114,8 @@ class TodoCell: UITableViewCell {
 
         hStack.snp.makeConstraints {
             $0.top.equalToSuperview().inset(8)
-            $0.leading.trailing.equalToSuperview().inset(C_margin16)
+            $0.trailing.equalToSuperview().inset(C_margin16)
+            $0.leading.equalTo(doneButton.snp.trailing).offset(C_margin16)
         }
 
         self.dateLabel.snp.makeConstraints { make in
@@ -103,8 +124,65 @@ class TodoCell: UITableViewCell {
 
         self.desLabel.snp.makeConstraints {
             $0.top.equalTo(hStack.snp.bottom).offset(8)
-            $0.leading.trailing.equalToSuperview().inset(C_margin16)
+            $0.trailing.equalToSuperview().inset(C_margin16)
+            $0.leading.equalTo(doneButton.snp.trailing).offset(C_margin16)
             $0.bottom.equalToSuperview().inset(8)
         }
+    }
+    
+    // MARK: -
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        disposeBag = DisposeBag()  // ✅ 바인딩 리셋
+        // cell 이 재사용 되었기에 새롭게 바인딩
+        self.bindDoneButton()
+
+    }
+}
+
+extension Reactive where Base: TodoCell {
+    var doneTap: ControlEvent<Void> {
+        base.doneButton.rx.tap
+    }
+}
+
+private class CircularCheckButton: UIButton {
+    var isDone = false {
+        didSet {
+            print("isDone : \(isDone)")
+            updateAppearance()
+            isDoneChanged.accept(isDone)
+        }
+    }
+
+    fileprivate let isDoneChanged = PublishRelay<Bool>.init()
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setup()
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        self.layer.cornerRadius = self.bounds.height / 2
+    }
+
+    private func setup() {
+        self.backgroundColor = .systemGray5
+        self.layer.borderWidth = 2
+        self.layer.borderColor = UIColor.systemBlue.cgColor
+        self.tintColor = .systemGray5
+        self.clipsToBounds = true
+    }
+
+    private func updateAppearance() {
+        self.layer.borderColor =
+            (isDone ? UIColor.systemGray5 : UIColor.systemBlue).cgColor
+
+        self.backgroundColor = isDone ? .systemBlue : .systemGray5
     }
 }
