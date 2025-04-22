@@ -39,6 +39,7 @@
 		C95B652D2D9E828900F05436 /* StringEX.swift in Sources */ = {isa = PBXBuildFile; fileRef = C95B652C2D9E828900F05436 /* StringEX.swift */; };
 		C97BA7392D91486800C43CB9 /* EditableTodoVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = C97BA7382D91486800C43CB9 /* EditableTodoVC.swift */; };
 		C97DC9962D940C2500D57958 /* RxGesture in Frameworks */ = {isa = PBXBuildFile; productRef = C97DC9952D940C2500D57958 /* RxGesture */; };
+		C98909822DB793A4000D9ED7 /* RxDataSources in Frameworks */ = {isa = PBXBuildFile; productRef = C98909812DB793A4000D9ED7 /* RxDataSources */; };
 		C99048382998A5A6004AD091 /* UIButtonEX.swift in Sources */ = {isa = PBXBuildFile; fileRef = C99048372998A5A6004AD091 /* UIButtonEX.swift */; };
 		C9AFC9C82DACDD8C0083D50B /* TodoCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9AFC9C72DACDD8C0083D50B /* TodoCell.swift */; };
 		C9CBB8432D9D097A00747A70 /* TextInputStackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9CBB8422D9D097A00747A70 /* TextInputStackView.swift */; };
@@ -122,6 +123,7 @@
 				04457F0228A6038D00AF2EBB /* SnapKit in Frameworks */,
 				C90E48512D6D50C600FA6A81 /* Alamofire in Frameworks */,
 				04457F0A28A603D700AF2EBB /* RxCocoa in Frameworks */,
+				C98909822DB793A4000D9ED7 /* RxDataSources in Frameworks */,
 				C9DB5FC52D80258200B72B5D /* Realm in Frameworks */,
 				04457F0528A6039C00AF2EBB /* Then in Frameworks */,
 			);
@@ -369,6 +371,7 @@
 				C9DB5FC62D80258200B72B5D /* RealmSwift */,
 				C97DC9952D940C2500D57958 /* RxGesture */,
 				C9E5382B2DA5081000D529D8 /* Swinject */,
+				C98909812DB793A4000D9ED7 /* RxDataSources */,
 			);
 			productName = todoApp;
 			productReference = 04457ECD28A6033B00AF2EBB /* todoApp.app */;
@@ -455,6 +458,7 @@
 				C9DB5FC32D80258200B72B5D /* XCRemoteSwiftPackageReference "realm-swift" */,
 				C97DC9942D940C2500D57958 /* XCRemoteSwiftPackageReference "RxGesture" */,
 				C9E5382A2DA5081000D529D8 /* XCRemoteSwiftPackageReference "Swinject" */,
+				C98909802DB793A4000D9ED7 /* XCRemoteSwiftPackageReference "RxDataSources" */,
 			);
 			productRefGroup = 04457ECE28A6033B00AF2EBB /* Products */;
 			projectDirPath = "";
@@ -946,6 +950,14 @@
 				minimumVersion = 4.0.4;
 			};
 		};
+		C98909802DB793A4000D9ED7 /* XCRemoteSwiftPackageReference "RxDataSources" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RxSwiftCommunity/RxDataSources";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.0.2;
+			};
+		};
 		C9DB5FC32D80258200B72B5D /* XCRemoteSwiftPackageReference "realm-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/realm/realm-swift";
@@ -1014,6 +1026,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = C97DC9942D940C2500D57958 /* XCRemoteSwiftPackageReference "RxGesture" */;
 			productName = RxGesture;
+		};
+		C98909812DB793A4000D9ED7 /* RxDataSources */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C98909802DB793A4000D9ED7 /* XCRemoteSwiftPackageReference "RxDataSources" */;
+			productName = RxDataSources;
 		};
 		C9DB5FC42D80258200B72B5D /* Realm */ = {
 			isa = XCSwiftPackageProductDependency;

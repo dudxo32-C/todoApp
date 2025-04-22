@@ -7,6 +7,7 @@
 
 import Foundation
 import RxCocoa
+import RxDataSources
 import RxSwift
 import SnapKit
 import Then
@@ -36,12 +37,12 @@ class TodoListVC: UIViewController {
             title: I18N.past, image: UIImage(systemName: "arrow.left.circle"),
             tag: 2
         )
-        
+
         let todayItem = UITabBarItem(
             title: I18N.today, image: UIImage(systemName: "calendar.circle"),
             tag: 0
         )
-        
+
         let futureItem = UITabBarItem(
             title: I18N.future,
             image: UIImage(systemName: "arrow.right.circle"),
@@ -107,7 +108,6 @@ class TodoListVC: UIViewController {
         self.bindTableView()
         self.bindNoListLabel()
 
-        
         viewModel.input.fetchItems.accept(())
     }
 
@@ -119,20 +119,32 @@ class TodoListVC: UIViewController {
     }
 
     private func bindTableView() {
-        viewModel.output.items
-            .drive(
-                tableView.rx.items(
-                    cellIdentifier: reuseIdentifier, cellType: TodoCell.self)
-            ) { (row, element, cell) in
+
+        let dataSource = RxTableViewSectionedReloadDataSource<TodoSection>(
+            configureCell: { dataSource, tableView, indexPath, item in
+                guard
+                    let cell = tableView.dequeueReusableCell(
+                        withIdentifier: reuseIdentifier) as? TodoCell
+                else {
+                    return UITableViewCell()
+                }
+                cell.todoModel = item
+                
                 cell.rx.doneTap
                     .map { cell.todoModel }
                     .bind(to: self.viewModel.input.tapDone)
                     .disposed(by: cell.disposeBag)
                 
-                cell.todoModel = element
                 
-                
+                return cell
+            },
+            titleForHeaderInSection: { dataSource, index in
+                return dataSource.sectionModels[index].header
             }
+        )
+
+        viewModel.output.items
+            .drive(tableView.rx.items(dataSource: dataSource))
             .disposed(by: disposeBag)
     }
 
