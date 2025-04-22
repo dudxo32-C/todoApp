@@ -8,8 +8,23 @@
 import Foundation
 import RealmSwift
 import RxCocoa
+import RxDataSources
 import RxRelay
 import RxSwift
+
+struct TodoSection {
+    var header: String
+    var items: [Item]
+}
+
+extension TodoSection: SectionModelType {
+    typealias Item = TodoModelProtocol
+
+    init(original: TodoSection, items: [Item]) {
+        self = original
+        self.items = items
+    }
+}
 
 typealias TodoGroup = [TodoFilterType: [any TodoModelProtocol]]
 
@@ -31,7 +46,8 @@ class TodoListVM: ViewModelProtocol {
 
     struct Output {
         let isFetching: Driver<Bool>
-        let items: Driver<[TodoModelProtocol]>
+        //        let items: Driver<[TodoModelProtocol]>
+        let items: Driver<[TodoSection]>
         let error: Driver<Error?>
     }
 
@@ -72,11 +88,12 @@ class TodoListVM: ViewModelProtocol {
         bindAllItems()
         bindCacheGroup()
         bindDoneTap()
-        
+
         handleAddItem()
         handleDeleteItem()
     }
 
+    // MARK: - Transform
     private func transform() -> Output {
         return Output(
             isFetching: isfetchingRelay.asDriver(),
@@ -85,12 +102,34 @@ class TodoListVM: ViewModelProtocol {
         )
     }
 
+    private func makeSectionByDate(_ todos: [TodoModelProtocol])
+        -> [TodoSection]
+    {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy/MM/dd"
+        formatter.locale = Locale(identifier: "ko_KR")
+
+        let grouped = Dictionary(grouping: todos) { todo in
+            formatter.string(from: todo.date)
+        }
+
+        let sections =
+            grouped
+            .map { key, value in
+                TodoSection(header: key, items: value)
+            }
+            .sorted { $0.header < $1.header }  // 날짜순 정렬
+
+        return sections
+    }
+
     // view 에서 사용할 items
-    private func makeItemsDriver() -> Driver<[TodoModelProtocol]> {
+    private func makeItemsDriver() -> Driver<[TodoSection]> {
         return Observable.combineLatest(
             selectedFilter.asObservable(), cachedGroup.asObservable()
         ).map { (filter, group) in
-            return group[filter] ?? []
+            let arr = group[filter] ?? []
+            return self.makeSectionByDate(arr)
         }
         .asDriver(onErrorJustReturn: [])
     }
@@ -106,7 +145,7 @@ class TodoListVM: ViewModelProtocol {
     private func bindCacheGroup() {
         allItems
             .withUnretained(self)
-            .map { (vm, items) in vm.makeGroup(items) }
+            .map { (vm, items) in vm.makeTapGroup(items) }
             .bind(to: cachedGroup)
             .disposed(by: disposeBag)
     }
@@ -174,16 +213,18 @@ class TodoListVM: ViewModelProtocol {
                     }
 
                     // 새롭게 그룹화
-                    return self.makeGroup(arr)
+                    return self.makeTapGroup(arr)
                 }
             }
             .bind(to: self.cachedGroup)
             .disposed(by: self.disposeBag)
     }
 
-    private func handleDoneToggle(_ todo: TodoModelProtocol) -> Single<[TodoModelProtocol]> {
+    private func handleDoneToggle(_ todo: TodoModelProtocol) -> Single<
+        [TodoModelProtocol]
+    > {
         let toggled = todo.copyWith(isDone: !todo.isDone)
-        
+
         return updateDone(targetTodo: toggled).map { newValue in
             var currentAll = self.allItems.value
             guard
@@ -288,7 +329,7 @@ class TodoListVM: ViewModelProtocol {
         return currentGroup
     }
 
-    private func makeGroup(_ items: [TodoModelProtocol]) -> TodoGroup {
+    private func makeTapGroup(_ items: [TodoModelProtocol]) -> TodoGroup {
         return Dictionary(grouping: items, by: getDateFilter(_:))
     }
 }
