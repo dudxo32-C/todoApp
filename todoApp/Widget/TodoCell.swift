@@ -50,33 +50,24 @@ class TodoCell: UITableViewCell {
         set {
             self._model = newValue
 
-            Observable.just(newValue.title)
-                .bind(to: self.titleLabel.rx.text)
-                .disposed(by: self.disposeBag)
+            titleLabel.text = newValue.title
 
-            Observable.just(newValue.contents)
-                .bind(to: self.desLabel.rx.text)
-                .disposed(by: self.disposeBag)
+            desLabel.text = newValue.contents
 
-            Observable.just(newValue.date)
-                .map { date in
-                    let formatter = DateFormatter()
-                    formatter.dateFormat = "yyyy/MM/dd"
-                    formatter.locale = Locale(identifier: "ko")
+            let formatter = DateFormatter()
+            formatter.dateFormat = "yyyy/MM/dd"
+            formatter.locale = Locale(identifier: "ko")
 
-                    let str = formatter.string(from: date)
+            let str = formatter.string(from: newValue.date)
+            dateLabel.text = str
 
-                    return str
-                }
-                .bind(to: self.dateLabel.rx.text)
-                .disposed(by: self.disposeBag)
-
-            //            Observable.just(newValue.isDone).bind(to: self.doneButton.rx.isChecked).disposed(by: self.disposedBag)
+            doneButton.isDone = newValue.isDone
+            print(newValue)
         }
     }
     // MARK: - RX
     var disposeBag = DisposeBag()
-    
+
     // MARK: -
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -87,12 +78,22 @@ class TodoCell: UITableViewCell {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    // MARK: -
-      override func prepareForReuse() {
-          super.prepareForReuse()
-          disposeBag = DisposeBag() // ✅ 바인딩 리셋
-      }
+    // MARK: - Binding
+    private func bindDoneButton() {
+        doneButton.isDoneChanged
+            .withUnretained(self)
+            .bind { (self, isDone) in
+                print("bind : \(isDone)")
+                let color = isDone ? UIColor.systemGray3 : UIColor.black
+                self.titleLabel.textColor = color
+                self.desLabel.textColor = color
+                self.dateLabel.textColor = color
+            }
+            .disposed(by: disposeBag)
+
+    }
     
+    // MARK: - SetUI
     private func setupViews() {
         contentView.addSubview(doneButton)
 
@@ -128,21 +129,33 @@ class TodoCell: UITableViewCell {
             $0.bottom.equalToSuperview().inset(8)
         }
     }
+    
+    // MARK: -
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        disposeBag = DisposeBag()  // ✅ 바인딩 리셋
+        // cell 이 재사용 되었기에 새롭게 바인딩
+        self.bindDoneButton()
+
+    }
 }
 
 extension Reactive where Base: TodoCell {
-    var doneTap:ControlEvent<Void>{
+    var doneTap: ControlEvent<Void> {
         base.doneButton.rx.tap
     }
 }
 
-
-class CircularCheckButton: UIButton {
-    var isChecked = false {
+private class CircularCheckButton: UIButton {
+    var isDone = false {
         didSet {
+            print("isDone : \(isDone)")
             updateAppearance()
+            isDoneChanged.accept(isDone)
         }
     }
+
+    fileprivate let isDoneChanged = PublishRelay<Bool>.init()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -159,8 +172,6 @@ class CircularCheckButton: UIButton {
     }
 
     private func setup() {
-        self.addTarget(
-            self, action: #selector(toggleCheck), for: .touchUpInside)
         self.backgroundColor = .systemGray5
         self.layer.borderWidth = 2
         self.layer.borderColor = UIColor.systemBlue.cgColor
@@ -168,17 +179,10 @@ class CircularCheckButton: UIButton {
         self.clipsToBounds = true
     }
 
-    @objc private func toggleCheck() {
-        isChecked.toggle()
-    }
-
     private func updateAppearance() {
-        //        let imageName = isChecked ? "circle" : ""
-        //        let image = UIImage(systemName: imageName)
-        //        self.setImage(image, for: .normal)
         self.layer.borderColor =
-            (isChecked ? UIColor.systemGray5 : UIColor.systemBlue).cgColor
+            (isDone ? UIColor.systemGray5 : UIColor.systemBlue).cgColor
 
-        self.backgroundColor = isChecked ? .systemBlue : .systemGray5
+        self.backgroundColor = isDone ? .systemBlue : .systemGray5
     }
 }
