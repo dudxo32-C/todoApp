@@ -140,14 +140,13 @@ class TodoListVM: ViewModelProtocol {
         input.fetchItems
             .withUnretained(self)
             .flatMap { (vm, _) in vm.fetchItems() }
-            .subscribe(
-                onNext: { value in
-                    self.allItems.accept(value)
-                },
-                onError: { error in
-                    self.errorRelay.accept(error)
-                }
-            )
+            .asObservable()
+            .catch { error in
+                self.errorRelay.accept(error)
+                return .empty()
+            }
+
+            .bind(to: allItems)
             .disposed(by: disposeBag)
     }
 
@@ -156,8 +155,6 @@ class TodoListVM: ViewModelProtocol {
             .withUnretained(self)
             .map { (vm, items) in vm.makeTapGroup(items) }
             .bind(to: cachedGroup)
-            
-
             .disposed(by: disposeBag)
     }
 
@@ -172,10 +169,7 @@ class TodoListVM: ViewModelProtocol {
         input.changedItem
             .asTodoModel
             .withUnretained(self)
-            .flatMap { (vm, value) in
-                vm.handleChangeItem(value)
-                    .catch { _ in .never() }
-            }
+            .flatMap { (self, changed) in self.handleChange(changed) }
             .bind(to: self.allItems)
             .disposed(by: self.disposeBag)
     }
@@ -184,10 +178,7 @@ class TodoListVM: ViewModelProtocol {
         input.toggleDone
             .asTodoModel
             .withUnretained(self)
-            .flatMap { (self, value) in
-                self.handleToggleDone(oldTodo: value)
-            }
-            .catch { _ in .never() }
+            .flatMap { (self, value) in self.handleToggleDone(oldTodo: value) }
             .bind(to: self.allItems)
             .disposed(by: self.disposeBag)
     }
@@ -196,13 +187,7 @@ class TodoListVM: ViewModelProtocol {
         self.input.addedItem
             .asTodoModel
             .withUnretained(self)
-            .map({ (vm, newItem) in
-                let filterType = vm.getDateFilter(newItem)
-                let currentArr = vm.cachedGroup.value[filterType] ?? []
-                let newArr = currentArr + [newItem]
-
-                return vm.changeGroupItem(items: newArr, type: filterType)
-            })
+            .map { (self, newItem) in self.handleAddedItem(newItem) }
             .bind(to: self.cachedGroup)
             .disposed(by: self.disposeBag)
     }
@@ -211,55 +196,19 @@ class TodoListVM: ViewModelProtocol {
         self.input.tapDelete
             .asTodoModel
             .withUnretained(self)
-            .flatMap { $0.deleteTodo(todo: $1) }
-            .map { self.handleDeletedItem($0) }
+            .flatMap { (self, value) in self.handleDeleteItem(value) }
             .bind(to: self.cachedGroup)
             .disposed(by: self.disposeBag)
     }
 
     // MARK: - handle
-    private func handleDeletedItem(_ removed: TodoModel) -> TodoGroup {
-        let filterType = self.getDateFilter(removed)
-        let currentArr = self.cachedGroup.value[filterType] ?? []
-
-        // 삭제된 todo 의 날짜 그룹에서 있는지 확인
-        let isHave = currentArr.contains(where: { $0.id == removed.id })
-
-        if isHave {
-            let arr = currentArr.filter {
-                $0.id != removed.id
-            }
-
-            return self.changeGroupItem(items: arr, type: filterType)
-
-        } else {
-            // 그룹에서 찾아지지 않을경우 전체에서 한번더 검색
-            let arr = self.allItems.value.filter {
-                $0.id != removed.id
-            }
-
-            // 새롭게 그룹화
-            return self.makeTapGroup(arr)
-        }
-    }
-
-    private func handleChangeItem(_ newTodo: TodoModel) -> Observable<
-        [TodoModel]
-    > {
-        var currentAll = allItems.value
-
-        return Observable.create { observer in
-            let targetIndex = currentAll.firstIndex { $0.id == newTodo.id }
-            Task {
-                guard let index = targetIndex else { throw TodoError.notFound }
-
-                currentAll[index] = newTodo
-                observer.onNext(currentAll)
-                observer.onCompleted()
-            }
-
-            return Disposables.create()
-        }
+    private func handleDeleteItem(_ target: TodoModel) -> Observable<TodoGroup>
+    {
+        return deleteTodo(todo: target)
+            .asObservable()
+            .withUnretained(self)
+            .map { (self, removed) in self.deleteItemInGroup(removed) }
+            .catch { _ in .never() }
 
     }
 
@@ -268,23 +217,35 @@ class TodoListVM: ViewModelProtocol {
         let toggled = oldTodo.copyWith(isDone: !oldTodo.isDone)
 
         return updateDone(newTodo: toggled)
-            
             .asObservable()
-            .catch { _ in .empty() }
-            .debug("[toggleDone]")
-            .flatMap { [weak self] newValue in
-                guard let self = self else {
-                    preconditionFailure("self 가 없습니다")
-                }
+            .withUnretained(self)
+            .map { (self, updated) in try self.changeItemInAll(updated) }
+            .catch { _ in .never() }
+    }
 
-                return self.handleChangeItem(newValue)
-            }
+    private func handleChange(_ changed: TodoModel) -> Observable<[TodoModel]> {
+        do {
+            let updated = try changeItemInAll(changed)
+            return .just(updated)
+        } catch {
+            return Observable.never()
+        }
+    }
+
+    private func handleAddedItem(_ added: TodoModel) -> TodoGroup {
+        let filterType = getDateFilter(added)
+        let currentArr = cachedGroup.value[filterType] ?? []
+        let newArr = currentArr + [added]
+
+        return changeGroupItem(items: newArr, type: filterType)
     }
 
     // MARK: - async
     private func fetchItems() -> Single<[TodoModel]> {
         self.isfetchingRelay.accept(true)
+
         return .create { [weak self] single in
+
             Task {
                 guard let self = self else {
                     preconditionFailure("self 가 없습니다")
@@ -299,11 +260,13 @@ class TodoListVM: ViewModelProtocol {
                 } catch {
                     single(.failure(error))
                 }
+
             }
 
             return Disposables.create {
                 self?.isfetchingRelay.accept(false)
             }
+
         }
     }
 
@@ -324,35 +287,23 @@ class TodoListVM: ViewModelProtocol {
         }
     }
 
-    var e = 0
     private func updateDone(newTodo: TodoModel) -> Single<TodoModel> {
         return .create { [weak self] single in
-
             guard let self = self else { preconditionFailure("self 가 없습니다") }
 
             Task {
-                if self.e == 0 {
-                    self.e += 1
-                    single(.failure(ToDoListError.notFound))
-                    //                    return Disposables.create()
-                } else {
+                do {
+                    let updated = try await self.repo.updateTodo(newTodo)
+                    let model = updated.asTodoModel
 
-                    do {
-                        let updated = try await self.repo.updateTodo(newTodo)
-                        let model = updated.asTodoModel
-
-                        single(.success(model))
-                    } catch {
-                        single(.failure(error))
-                    }
-
+                    single(.success(model))
+                } catch {
+                    single(.failure(error))
                 }
-
             }
 
             return Disposables.create()
         }
-
     }
 
     // MARK: -
@@ -381,6 +332,42 @@ class TodoListVM: ViewModelProtocol {
 
     private func makeTapGroup(_ items: [TodoModel]) -> TodoGroup {
         return Dictionary(grouping: items, by: getDateFilter(_:))
+    }
+
+    private func changeItemInAll(_ newTodo: TodoModel) throws -> [TodoModel] {
+        var currentAll = allItems.value
+
+        let targetIndex = currentAll.firstIndex { $0.id == newTodo.id }
+        guard let index = targetIndex else { throw TodoError.notFound }
+
+        currentAll[index] = newTodo
+
+        return currentAll
+    }
+
+    private func deleteItemInGroup(_ removed: TodoModel) -> TodoGroup {
+        let filterType = self.getDateFilter(removed)
+        let currentArr = self.cachedGroup.value[filterType] ?? []
+
+        // 삭제된 todo 의 날짜 그룹에서 있는지 확인
+        let isHave = currentArr.contains(where: { $0.id == removed.id })
+
+        if isHave {
+            let arr = currentArr.filter {
+                $0.id != removed.id
+            }
+
+            return self.changeGroupItem(items: arr, type: filterType)
+
+        } else {
+            // 그룹에서 찾아지지 않을경우 전체에서 한번더 검색
+            let arr = self.allItems.value.filter {
+                $0.id != removed.id
+            }
+
+            // 새롭게 그룹화
+            return self.makeTapGroup(arr)
+        }
     }
 }
 
