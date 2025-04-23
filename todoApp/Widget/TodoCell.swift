@@ -62,7 +62,6 @@ class TodoCell: UITableViewCell {
             dateLabel.text = str
 
             doneButton.isDone = newValue.isDone
-            print(newValue)
         }
     }
     // MARK: - RX
@@ -83,7 +82,6 @@ class TodoCell: UITableViewCell {
         doneButton.isDoneChanged
             .withUnretained(self)
             .bind { (self, isDone) in
-                print("bind : \(isDone)")
                 let color = isDone ? UIColor.systemGray3 : UIColor.black
                 self.titleLabel.textColor = color
                 self.desLabel.textColor = color
@@ -149,7 +147,6 @@ extension Reactive where Base: TodoCell {
 private class CircularCheckButton: UIButton {
     var isDone = false {
         didSet {
-            print("isDone : \(isDone)")
             updateAppearance()
             isDoneChanged.accept(isDone)
         }

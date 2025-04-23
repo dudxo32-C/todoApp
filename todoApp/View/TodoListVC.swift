@@ -133,7 +133,7 @@ class TodoListVC: UIViewController {
 
                 cell.rx.doneTap
                     .map { cell.todoModel }
-                    .bind(to: self.viewModel.input.tapDone)
+                    .bind(to: self.viewModel.input.toggleDone)
                     .disposed(by: cell.disposeBag)
 
                 cell.rx.tapGesture()
@@ -184,7 +184,7 @@ class TodoListVC: UIViewController {
         self.navigationController?.present(modalNavi, animated: true)
 
         newVC.writtenTodo.subscribe(onNext: { [weak self] todo in
-            self?.viewModel.input.addItem.accept(todo)
+            self?.viewModel.input.addedItem.accept(todo)
         }).disposed(by: disposeBag)
     }
 
