@@ -26,7 +26,7 @@ extension TodoSection: SectionModelType {
     }
 }
 
-typealias TodoGroup = [TodoFilterType: [any TodoModelProtocol]]
+typealias TodoGroup = [TodoFilterType: [TodoModel]]
 
 enum ToDoListError: Error {
     case notFound
@@ -48,7 +48,6 @@ class TodoListVM: ViewModelProtocol {
 
     struct Output {
         let isFetching: Driver<Bool>
-        //        let items: Driver<[TodoModelProtocol]>
         let items: Driver<[TodoSection]>
         let error: Driver<Error?>
     }
@@ -70,7 +69,7 @@ class TodoListVM: ViewModelProtocol {
 
     private let isfetchingRelay = BehaviorRelay(value: false)
     private let errorRelay = BehaviorRelay<Error?>(value: nil)
-    private let allItems = BehaviorRelay<[TodoModelProtocol]>(value: [])
+    private let allItems = BehaviorRelay<[TodoModel]>(value: [])
     private let cachedGroup = BehaviorRelay<TodoGroup>(value: [:])
     private let selectedFilter: BehaviorRelay<TodoFilterType>
 
@@ -92,7 +91,7 @@ class TodoListVM: ViewModelProtocol {
         bindCacheGroup()
         bindDoneTap()
         bindChangeItem()
-        
+
         handleAddItem()
         handleDeleteItem()
     }
@@ -106,9 +105,7 @@ class TodoListVM: ViewModelProtocol {
         )
     }
 
-    private func makeSectionByDate(_ todos: [TodoModelProtocol])
-        -> [TodoSection]
-    {
+    private func makeSectionByDate(_ todos: [TodoModel]) -> [TodoSection] {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy/MM/dd"
         formatter.locale = Locale(identifier: "ko_KR")
@@ -171,6 +168,7 @@ class TodoListVM: ViewModelProtocol {
 
     private func bindDoneTap() {
         input.tapDone
+            .asTodoModel
             .withUnretained(self)
             .flatMap { (vm, value) in vm.handleDoneToggle(value) }
             .bind(to: self.allItems)
@@ -179,6 +177,7 @@ class TodoListVM: ViewModelProtocol {
 
     private func bindChangeItem() {
         input.changedItem
+            .asTodoModel
             .withUnretained(self)
             .flatMap { (vm, value) in
                 vm.handleChangeItem(value)
@@ -189,17 +188,15 @@ class TodoListVM: ViewModelProtocol {
     }
 
     // MARK: - handle
-    private func handleChangeItem(_ newTodo: TodoModelProtocol) -> Single<
-        [TodoModelProtocol]
-    > {
+    private func handleChangeItem(_ newTodo: TodoModel) -> Single<[TodoModel]> {
         var currentArr = allItems.value
 
         return .create { single in
-            
+
             Task {
                 //TODO: TodoModel equatable 적용
                 let index = currentArr.firstIndex { $0.id == newTodo.id }
-                
+
                 guard let index = index else { throw TodoError.notFound }
 
                 currentArr[index] = newTodo
@@ -212,6 +209,7 @@ class TodoListVM: ViewModelProtocol {
 
     private func handleAddItem() {
         self.input.addItem
+            .asTodoModel
             .withUnretained(self)
             .map({ (vm, newItem) in
                 let filterType = vm.getDateFilter(newItem)
@@ -226,6 +224,7 @@ class TodoListVM: ViewModelProtocol {
 
     private func handleDeleteItem() {
         self.input.tapDelete
+            .asTodoModel
             .withUnretained(self)
             .flatMap { $0.deleteTodo(todo: $1) }
             .map { removed in
@@ -256,9 +255,7 @@ class TodoListVM: ViewModelProtocol {
             .disposed(by: self.disposeBag)
     }
 
-    private func handleDoneToggle(_ todo: TodoModelProtocol) -> Single<
-        [TodoModelProtocol]
-    > {
+    private func handleDoneToggle(_ todo: TodoModel) -> Single<[TodoModel]> {
         let toggled = todo.copyWith(isDone: !todo.isDone)
 
         return updateDone(targetTodo: toggled).map { newValue in
@@ -277,9 +274,8 @@ class TodoListVM: ViewModelProtocol {
     }
 
     // MARK: - async
-    private func fetchItems() -> Single<[TodoModelProtocol]> {
+    private func fetchItems() -> Single<[TodoModel]> {
         self.isfetchingRelay.accept(true)
-
         return .create { [weak self] single in
             Task {
                 guard let self = self else {
@@ -288,6 +284,8 @@ class TodoListVM: ViewModelProtocol {
 
                 do {
                     let response = try await self.repo.fetchTodoList()
+                        .map { $0.asTodoModel }
+
                     single(.success(response))
 
                 } catch {
@@ -301,9 +299,7 @@ class TodoListVM: ViewModelProtocol {
         }
     }
 
-    private func deleteTodo(todo: TodoModelProtocol) -> Single<
-        TodoModelProtocol
-    > {
+    private func deleteTodo(todo: TodoModel) -> Single<TodoModel> {
         return .create { [weak self] single in
             guard let self = self else { preconditionFailure("self 가 없습니다") }
 
@@ -320,17 +316,16 @@ class TodoListVM: ViewModelProtocol {
         }
     }
 
-    private func updateDone(targetTodo target: TodoModelProtocol) -> Single<
-        TodoModelProtocol
-    > {
+    private func updateDone(targetTodo target: TodoModel) -> Single<TodoModel> {
         return .create { [weak self] single in
             guard let self = self else { preconditionFailure("self 가 없습니다") }
 
             Task {
                 do {
                     let updated = try await self.repo.updateTodo(target)
+                    let model = TodoModel(updated)
 
-                    single(.success(updated))
+                    single(.success(model))
                 } catch {
                     single(.failure(error))
                 }
@@ -342,7 +337,7 @@ class TodoListVM: ViewModelProtocol {
     }
 
     // MARK: -
-    private func getDateFilter(_ todo: TodoModelProtocol) -> TodoFilterType {
+    private func getDateFilter(_ todo: TodoModel) -> TodoFilterType {
         let comparison = Calendar.current.compare(
             todo.date, to: Date(), toGranularity: .day)
 
@@ -356,16 +351,22 @@ class TodoListVM: ViewModelProtocol {
         }
     }
 
-    private func changeGroupItem(
-        items: [TodoModelProtocol], type: TodoFilterType
-    ) -> TodoGroup {
+    private func changeGroupItem(items: [TodoModel], type: TodoFilterType)
+        -> TodoGroup
+    {
         var currentGroup = self.cachedGroup.value
 
         currentGroup[type] = items
         return currentGroup
     }
 
-    private func makeTapGroup(_ items: [TodoModelProtocol]) -> TodoGroup {
+    private func makeTapGroup(_ items: [TodoModel]) -> TodoGroup {
         return Dictionary(grouping: items, by: getDateFilter(_:))
+    }
+}
+
+private extension PublishRelay where Element == TodoModelProtocol {
+    var asTodoModel: Observable<TodoModel> {
+        return self.map { $0.asTodoModel }
     }
 }
