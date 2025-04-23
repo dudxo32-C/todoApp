@@ -29,6 +29,7 @@ extension TodoSection: SectionModelType {
 typealias TodoGroup = [TodoFilterType: [any TodoModelProtocol]]
 
 enum ToDoListError: Error {
+    case notFound
 }
 
 enum TodoFilterType {
@@ -39,6 +40,7 @@ class TodoListVM: ViewModelProtocol {
     struct Input {
         let fetchItems: PublishRelay<Void>
         let addItem: PublishRelay<TodoModelProtocol>
+        let changedItem: PublishRelay<TodoModelProtocol>
         let tapDelete: PublishRelay<TodoModelProtocol>
         let tapFilter: PublishRelay<TodoFilterType>
         let tapDone: PublishRelay<TodoModelProtocol>
@@ -76,6 +78,7 @@ class TodoListVM: ViewModelProtocol {
         self.input = Input(
             fetchItems: PublishRelay(),
             addItem: PublishRelay(),
+            changedItem: PublishRelay(),
             tapDelete: PublishRelay(),
             tapFilter: PublishRelay(),
             tapDone: PublishRelay()
@@ -88,7 +91,8 @@ class TodoListVM: ViewModelProtocol {
         bindAllItems()
         bindCacheGroup()
         bindDoneTap()
-
+        bindChangeItem()
+        
         handleAddItem()
         handleDeleteItem()
     }
@@ -173,7 +177,39 @@ class TodoListVM: ViewModelProtocol {
             .disposed(by: self.disposeBag)
     }
 
+    private func bindChangeItem() {
+        input.changedItem
+            .withUnretained(self)
+            .flatMap { (vm, value) in
+                vm.handleChangeItem(value)
+                    .catch { _ in .never() }
+            }
+            .bind(to: self.allItems)
+            .disposed(by: self.disposeBag)
+    }
+
     // MARK: - handle
+    private func handleChangeItem(_ newTodo: TodoModelProtocol) -> Single<
+        [TodoModelProtocol]
+    > {
+        var currentArr = allItems.value
+
+        return .create { single in
+            
+            Task {
+                //TODO: TodoModel equatable 적용
+                let index = currentArr.firstIndex { $0.id == newTodo.id }
+                
+                guard let index = index else { throw TodoError.notFound }
+
+                currentArr[index] = newTodo
+                single(.success(currentArr))
+
+            }
+            return Disposables.create()
+        }
+    }
+
     private func handleAddItem() {
         self.input.addItem
             .withUnretained(self)

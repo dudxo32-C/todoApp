@@ -8,6 +8,7 @@
 import Foundation
 import RxCocoa
 import RxDataSources
+import RxGesture
 import RxSwift
 import SnapKit
 import Then
@@ -129,13 +130,20 @@ class TodoListVC: UIViewController {
                     return UITableViewCell()
                 }
                 cell.todoModel = item
-                
+
                 cell.rx.doneTap
                     .map { cell.todoModel }
                     .bind(to: self.viewModel.input.tapDone)
                     .disposed(by: cell.disposeBag)
-                
-                
+
+                cell.rx.tapGesture()
+                    .when(.recognized)
+                    .withUnretained(self)
+                    .bind { (self, _) in
+                        self.goEditScreen(cell.todoModel)
+                    }
+                    .disposed(by: cell.disposeBag)
+
                 return cell
             },
             titleForHeaderInSection: { dataSource, index in
@@ -177,6 +185,17 @@ class TodoListVC: UIViewController {
 
         newVC.writtenTodo.subscribe(onNext: { [weak self] todo in
             self?.viewModel.input.addItem.accept(todo)
+        }).disposed(by: disposeBag)
+    }
+
+    private func goEditScreen(_ todo: TodoModelProtocol) {
+        let newVC = EditableTodoDIContainer().makeEditTodoVC(
+            todoModel: todo, .mock)
+        let modalNavi = UINavigationController(rootViewController: newVC)
+        self.navigationController?.present(modalNavi, animated: true)
+
+        newVC.writtenTodo.subscribe(onNext: { [weak self] todo in
+            self?.viewModel.input.changedItem.accept(todo)
         }).disposed(by: disposeBag)
     }
 }

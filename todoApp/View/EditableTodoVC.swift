@@ -80,9 +80,7 @@ class EditableTodoVC: UIViewController {
         self.viewModel.output.writeTodoResult.drive { result in
             switch result {
             case .success(let todo):
-                self.writtenTodo.onNext(todo)
-                self.writtenTodo.onCompleted()
-                self.didFinishWriting()
+                self.didFinishWriting(todo)
 
                 break
             case .failure(let error):
@@ -135,7 +133,7 @@ class EditableTodoVC: UIViewController {
             .disposed(by: disposeBag)
     }
     
-    fileprivate func didFinishWriting() {
+    fileprivate func didFinishWriting(_ todo:TodoModelProtocol) {
         preconditionFailure("Subclasses must implement didFinishWriting()")
     }
 }
@@ -155,7 +153,9 @@ class CreateTodoVC: EditableTodoVC {
         super.viewDidLoad()
     }
     
-    override func didFinishWriting() {
+    override func didFinishWriting(_ todo:TodoModelProtocol) {
+        self.writtenTodo.onNext(todo)
+        self.writtenTodo.onCompleted()
         self.navigationController?.dismiss(animated: true)
     }
 
@@ -176,7 +176,9 @@ class EditTodoVC: EditableTodoVC {
         super.viewDidLoad()
     }
     
-    override func didFinishWriting() {
+    override func didFinishWriting(_ todo:TodoModelProtocol) {
+        self.writtenTodo.onNext(todo)
+        self.writtenTodo.onCompleted()
         self.navigationController?.dismiss(animated: true)
     }
 }
