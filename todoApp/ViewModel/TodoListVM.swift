@@ -139,13 +139,7 @@ class TodoListVM: ViewModelProtocol {
     private func bindFetchItemsToAll() {
         input.fetchItems
             .withUnretained(self)
-            .flatMap { (vm, _) in vm.fetchItems() }
-            .asObservable()
-            .catch { error in
-                self.errorRelay.accept(error)
-                return .empty()
-            }
-
+            .flatMap { (vm, _) in vm.handleFetching() }
             .bind(to: allItems)
             .disposed(by: disposeBag)
     }
@@ -202,6 +196,15 @@ class TodoListVM: ViewModelProtocol {
     }
 
     // MARK: - handle
+    private func handleFetching() -> Single<[TodoModel]> {
+        return self.fetchItems()
+            .retry(2)
+            .catch { error in
+                self.errorRelay.accept(error)
+                return .never()
+            }
+    }
+
     private func handleDeleteItem(_ target: TodoModel) -> Observable<TodoGroup>
     {
         return deleteTodo(todo: target)
@@ -242,9 +245,8 @@ class TodoListVM: ViewModelProtocol {
 
     // MARK: - async
     private func fetchItems() -> Single<[TodoModel]> {
-        self.isfetchingRelay.accept(true)
-
         return .create { [weak self] single in
+            self?.isfetchingRelay.accept(true)
 
             Task {
                 guard let self = self else {
