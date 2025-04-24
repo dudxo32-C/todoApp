@@ -12,6 +12,7 @@ import RxDataSources
 import RxRelay
 import RxSwift
 
+enum RetryAction { case retry, none }
 struct TodoSection {
     var header: String
     var items: [Item]
@@ -44,6 +45,7 @@ class TodoListVM: ViewModelProtocol {
         let tapDelete: PublishRelay<TodoModelProtocol>
         let tapFilter: PublishRelay<TodoFilterType>
         let toggleDone: PublishRelay<TodoModelProtocol>
+        let retryTrigger: PublishRelay<RetryAction>
     }
 
     struct Output {
@@ -80,7 +82,8 @@ class TodoListVM: ViewModelProtocol {
             changedItem: PublishRelay(),
             tapDelete: PublishRelay(),
             tapFilter: PublishRelay(),
-            toggleDone: PublishRelay()
+            toggleDone: PublishRelay(),
+            retryTrigger: PublishRelay()
         )
 
         self.selectedFilter = .init(value: selectedFilter)
@@ -196,11 +199,27 @@ class TodoListVM: ViewModelProtocol {
     }
 
     // MARK: - handle
+    private func handelCommonRetry(error:Observable<any Error>) -> Observable<Void> {
+        return error.withUnretained(self)
+            .do { (self, error) in self.errorRelay.accept(error) }
+            .flatMap { (self, error) in
+                self.input.retryTrigger
+                    .flatMap { action in
+                        switch action {
+                        case .retry:
+                            return Observable.just(())
+
+                        case .none:
+                            return Observable.error(error)
+                        }
+                    }
+            }
+    }
     private func handleFetching() -> Single<[TodoModel]> {
         return self.fetchItems()
-            .retry(2)
+            .retry(when: self.handelCommonRetry)
             .catch { error in
-                self.errorRelay.accept(error)
+                print(error)
                 return .never()
             }
     }
@@ -211,6 +230,7 @@ class TodoListVM: ViewModelProtocol {
             .asObservable()
             .withUnretained(self)
             .map { (self, removed) in self.deleteItemInGroup(removed) }
+            .retry(when: self.handelCommonRetry)
             .catch { _ in .never() }
 
     }
@@ -223,6 +243,7 @@ class TodoListVM: ViewModelProtocol {
             .asObservable()
             .withUnretained(self)
             .map { (self, updated) in try self.changeItemInAll(updated) }
+            .retry(when: self.handelCommonRetry)
             .catch { _ in .never() }
     }
 
