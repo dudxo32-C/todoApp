@@ -16,19 +16,8 @@ protocol TodoModelProtocol {
 }
 
 extension TodoModelProtocol {
-    func copyWith(
-        title: String? = nil,
-        date: Date? = nil,
-        contents: String? = nil,
-        isDone: Bool? = nil
-    ) -> TodoModelProtocol{
-        return TodoModel(
-            id: self.id,
-            title: title ?? self.title,
-            date: date ?? self.date,
-            contents: contents ?? self.contents,
-            isDone: isDone ?? self.isDone
-        )
+    var asTodoModel: TodoModel {
+        return TodoModel(self)
     }
 }
 
@@ -38,7 +27,7 @@ struct TodoModel: TodoModelProtocol {
     var date: Date
     var contents: String
     var isDone: Bool
- 
+
     init(id: String, title: String, date: Date, contents: String, isDone: Bool)
     {
         self.id = id
@@ -54,5 +43,32 @@ struct TodoModel: TodoModelProtocol {
         self.date = `protocol`.date
         self.contents = `protocol`.contents
         self.isDone = `protocol`.isDone
+    }
+}
+
+extension TodoModel: Equatable {
+    static func == (lhs: TodoModel, rhs: TodoModel) -> Bool {
+        let isSameDay = Calendar.current.isDate(lhs.date, inSameDayAs: rhs.date)
+
+        return lhs.id == rhs.id
+            && lhs.title == rhs.title
+            && lhs.contents == rhs.contents
+            && isSameDay
+            && lhs.isDone == rhs.isDone
+    }
+
+    func copyWith(
+        title: String? = nil,
+        date: Date? = nil,
+        contents: String? = nil,
+        isDone: Bool? = nil
+    ) -> TodoModel {
+        return TodoModel(
+            id: self.id,
+            title: title ?? self.title,
+            date: date ?? self.date,
+            contents: contents ?? self.contents,
+            isDone: isDone ?? self.isDone
+        )
     }
 }

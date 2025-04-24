@@ -17,4 +17,10 @@ struct I18N {
     static let future = "future".localized
     /// 과거
     static let past = "past".localized
+    /// 서버에서 에러가 발생했습니다
+    static let serverError = "serverError".localized
+    /// 확인
+    static let confirm = "confirm".localized
+    /// 재시도
+    static let retry = "retry".localized
 }

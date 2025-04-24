@@ -108,6 +108,7 @@ class TodoListVC: UIViewController {
         self.bindLoading()
         self.bindTableView()
         self.bindNoListLabel()
+        self.bindErrorAlert()
 
         viewModel.input.fetchItems.accept(())
     }
@@ -116,6 +117,24 @@ class TodoListVC: UIViewController {
     private func bindLoading() {
         self.viewModel.output.isFetching
             .drive(loadingIndicator.rx.isAnimating)
+            .disposed(by: disposeBag)
+    }
+    
+    private func bindErrorAlert() {
+        viewModel.output.error
+            .compactMap { $0?.localizedDescription }
+            .drive { e in
+                self.rx.showRetry(
+                    message: e,
+                    retryAction: { _ in
+                        self.viewModel.input.retryTrigger.accept(.retry)
+                    },
+                    confirmAction: { _ in
+                        self.viewModel.input.retryTrigger.accept(.none)
+                    }
+                )
+
+            }
             .disposed(by: disposeBag)
     }
 
@@ -133,7 +152,7 @@ class TodoListVC: UIViewController {
 
                 cell.rx.doneTap
                     .map { cell.todoModel }
-                    .bind(to: self.viewModel.input.tapDone)
+                    .bind(to: self.viewModel.input.toggleDone)
                     .disposed(by: cell.disposeBag)
 
                 cell.rx.tapGesture()
@@ -184,7 +203,7 @@ class TodoListVC: UIViewController {
         self.navigationController?.present(modalNavi, animated: true)
 
         newVC.writtenTodo.subscribe(onNext: { [weak self] todo in
-            self?.viewModel.input.addItem.accept(todo)
+            self?.viewModel.input.addedItem.accept(todo)
         }).disposed(by: disposeBag)
     }
 
@@ -235,4 +254,25 @@ extension TodoListVC: UITabBarDelegate {
             break
         }
     }
+}
+
+extension Reactive where Base: UIViewController {
+    func showRetry(
+        message: String,
+        retryAction: @escaping (UIAlertAction) -> Void,
+        confirmAction: @escaping (UIAlertAction) -> Void
+    ) {
+        let alert = UIAlertController(
+            title: I18N.serverError, message: message, preferredStyle: .alert)
+
+        alert.addAction(
+            UIAlertAction(title: I18N.confirm, style: .cancel, handler: confirmAction)
+        )
+        alert.addAction(
+            UIAlertAction(title: I18N.retry, style: .default, handler: retryAction)
+        )
+
+        base.present(alert, animated: true)
+    }
+
 }
