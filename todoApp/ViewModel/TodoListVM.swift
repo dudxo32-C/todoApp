@@ -12,7 +12,7 @@ import RxDataSources
 import RxRelay
 import RxSwift
 
-enum RetryAction { case retry, none }
+// MARK: ViewModel에서 사용하는 데이터 모델
 struct TodoSection {
     var header: String
     var items: [Item]
@@ -27,18 +27,22 @@ extension TodoSection: SectionModelType {
     }
 }
 
-typealias TodoGroup = [TodoFilterType: [TodoModel]]
-
-enum ToDoListError: Error {
-    case notFound
-}
+// MARK: -  데이터 캐싱 및 분리 타입
+private typealias TodoGroup = [TodoFilterType: [TodoModel]]
 
 enum TodoFilterType {
     case past, today, future
 }
 
-class TodoListVM: ViewModelProtocol {
-    struct Input {
+// MARK: - Error 리스트
+enum ToDoListError: Error {
+    case notFound
+}
+
+
+// MARK: - VM
+class TodoListVM: ViewModelProtocol, RetryProtocol {
+    struct Input: CommonRetryInput {
         let fetchItems: PublishRelay<Void>
         let addedItem: PublishRelay<TodoModelProtocol>
         let changedItem: PublishRelay<TodoModelProtocol>
@@ -199,27 +203,18 @@ class TodoListVM: ViewModelProtocol {
     }
 
     // MARK: - handle
-    private func handelCommonRetry(error: Observable<any Error>) -> Observable<
+    private func retryCond(error: Observable<Error>) -> Observable<
         Void
     > {
         return error.withUnretained(self)
             .do { (self, error) in self.errorRelay.accept(error) }
-            .flatMap { (self, error) in
-                self.input.retryTrigger
-                    .flatMap { action in
-                        switch action {
-                        case .retry:
-                            return Observable.just(())
-
-                        case .none:
-                            return Observable.error(error)
-                        }
-                    }
-            }
+            .map { (_, error) in error }
+            .flatMap(handelRetry)
     }
+
     private func handleFetching() -> Single<[TodoModel]> {
         return self.fetchItems()
-            .retry(when: self.handelCommonRetry)
+            .retry(when: retryCond)
             .catch { error in
                 print(error)
                 return .never()
@@ -232,9 +227,8 @@ class TodoListVM: ViewModelProtocol {
             .asObservable()
             .withUnretained(self)
             .map { (self, removed) in self.deleteItemInGroup(removed) }
-            .retry(when: self.handelCommonRetry)
+            .retry(when: retryCond)
             .catch { _ in .never() }
-
     }
 
     private func handleToggleDone(oldTodo: TodoModel) -> Observable<[TodoModel]>
@@ -245,7 +239,7 @@ class TodoListVM: ViewModelProtocol {
             .asObservable()
             .withUnretained(self)
             .map { (self, updated) in try self.changeItemInAll(updated) }
-            .retry(when: self.handelCommonRetry)
+            .retry(when: retryCond)
             .catch { _ in .never() }
     }
 
