@@ -104,25 +104,17 @@ class CreateTodoVM: EditableTodoVM {
 
         self.loadingRelay.accept(true)
 
-        return .create { [weak self] single in
+        return .deferred { [weak self] in
             guard let self = self else { preconditionFailure("self 가 없습니다") }
 
-            Task {
-                do {
-                    let response = try await self.repo.writeTodo(
-                        title: title,
-                        contents: contents,
-                        date: date
-                    )
+            return .async {
+                let response = try await self.repo.writeTodo(
+                    title: title,
+                    contents: contents,
+                    date: date
+                )
 
-                    single(.success(TodoModel(response)))
-                } catch {
-                    single(.failure(error))
-                }
-            }
-
-            return Disposables.create {
-                self.loadingRelay.accept(false)
+                return response.asTodoModel
             }
         }
     }
@@ -195,27 +187,20 @@ class EditTodoVM: EditableTodoVM {
 
         self.loadingRelay.accept(true)
 
-        return .create { [weak self] single in
+        return .deferred { [weak self] in
             guard let self = self else { preconditionFailure("self 가 없습니다") }
 
-            Task {
-                do {
-                    let newTodo = self.model.copyWith(
-                        title: title,
-                        date: date,
-                        contents: contents
-                    )
+            return .async {
 
-                    let response = try await self.repo.updateTodo(newTodo)
+                let newTodo = self.model.copyWith(
+                    title: title,
+                    date: date,
+                    contents: contents
+                )
 
-                    single(.success(TodoModel(response)))
-                } catch {
-                    single(.failure(error))
-                }
-            }
-
-            return Disposables.create {
-                self.loadingRelay.accept(false)
+                let response = try await self.repo.updateTodo(newTodo)
+                
+                return response.asTodoModel
             }
         }
     }

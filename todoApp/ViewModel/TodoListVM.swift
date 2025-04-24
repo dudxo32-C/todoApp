@@ -199,7 +199,9 @@ class TodoListVM: ViewModelProtocol {
     }
 
     // MARK: - handle
-    private func handelCommonRetry(error:Observable<any Error>) -> Observable<Void> {
+    private func handelCommonRetry(error: Observable<any Error>) -> Observable<
+        Void
+    > {
         return error.withUnretained(self)
             .do { (self, error) in self.errorRelay.accept(error) }
             .flatMap { (self, error) in
@@ -266,66 +268,39 @@ class TodoListVM: ViewModelProtocol {
 
     // MARK: - async
     private func fetchItems() -> Single<[TodoModel]> {
-        return .create { [weak self] single in
-            self?.isfetchingRelay.accept(true)
+        return .deferred { [weak self] in
+            guard let self = self else { preconditionFailure("self 가 없습니다") }
 
-            Task {
-                guard let self = self else {
-                    preconditionFailure("self 가 없습니다")
-                }
-
-                do {
-                    let response = try await self.repo.fetchTodoList()
-                        .map { $0.asTodoModel }
-
-                    single(.success(response))
-
-                } catch {
-                    single(.failure(error))
-                }
-
+            return Single.async {
+                self.isfetchingRelay.accept(true)
+                return try await self.repo.fetchTodoList()
+                    .map { $0.asTodoModel }
+            } onDispose: {
+                self.isfetchingRelay.accept(false)
             }
-
-            return Disposables.create {
-                self?.isfetchingRelay.accept(false)
-            }
-
         }
+
     }
 
     private func deleteTodo(todo: TodoModel) -> Single<TodoModel> {
-        return .create { [weak self] single in
+        return .deferred { [weak self] in
             guard let self = self else { preconditionFailure("self 가 없습니다") }
 
-            Task {
-                do {
-                    let _ = try await self.repo.deleteTodo(todo.id)
-                    single(.success(todo))
-                } catch {
-                    single(.failure(error))
-                }
+            return .async {
+                let _ = try await self.repo.deleteTodo(todo.id)
+                return todo
             }
-
-            return Disposables.create()
         }
     }
 
     private func updateDone(newTodo: TodoModel) -> Single<TodoModel> {
-        return .create { [weak self] single in
+        return .deferred { [weak self] in
             guard let self = self else { preconditionFailure("self 가 없습니다") }
 
-            Task {
-                do {
-                    let updated = try await self.repo.updateTodo(newTodo)
-                    let model = updated.asTodoModel
-
-                    single(.success(model))
-                } catch {
-                    single(.failure(error))
-                }
+            return .async {
+                let updated = try await self.repo.updateTodo(newTodo)
+                return updated.asTodoModel
             }
-
-            return Disposables.create()
         }
     }
 
