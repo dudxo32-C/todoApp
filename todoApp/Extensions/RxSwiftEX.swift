@@ -6,12 +6,9 @@
 //
 import RxSwift
 
-import Foundation
-
-extension Single {
+extension PrimitiveSequence where Trait == SingleTrait {
     static func async(
-        _ factory: @escaping () async throws -> Element,
-        onDispose: (() -> Void)? = nil
+        _ factory: @escaping () async throws -> Element
     )
         -> Single<Element>
     {
@@ -25,9 +22,22 @@ extension Single {
                 }
             }
 
-            return Disposables.create {
-                onDispose?()
-            }
+            return Disposables.create()
         }
+    }
+    
+    func handleLoadingState(
+        _ changeState: @escaping (_ isLoading: Bool) -> Void
+    )
+        -> Single<Element>
+    {
+        return self.do(
+            onSubscribe: {
+                changeState(true)
+            },
+            onDispose: {
+                changeState(false)
+            }
+        ).debug("loading")
     }
 }

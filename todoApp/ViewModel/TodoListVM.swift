@@ -265,13 +265,13 @@ class TodoListVM: ViewModelProtocol, RetryProtocol, LoadingProtocol {
     private func fetchItems() -> Single<[TodoModel]> {
         return .deferred { [weak self] in
             guard let self = self else { preconditionFailure("self 가 없습니다") }
-
+            
             return .async {
                 self.isfetching.accept(true)
                 return try await self.repo.fetchTodoList()
                     .map { $0.asTodoModel }
-            } onDispose: {
-                self.isfetching.accept(false)
+            }.handleLoadingState { isLoading in
+                self.isfetching.accept(!isLoading)
             }
         }
 
