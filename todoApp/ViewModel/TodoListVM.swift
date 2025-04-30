@@ -39,10 +39,9 @@ enum ToDoListError: Error {
     case notFound
 }
 
-
 // MARK: - VM
 class TodoListVM: ViewModelProtocol, RetryProtocol, LoadingProtocol {
-    
+
     struct Input: CommonRetryInput {
         let fetchItems: PublishRelay<Void>
         let addedItem: PublishRelay<TodoModelProtocol>
@@ -73,7 +72,7 @@ class TodoListVM: ViewModelProtocol, RetryProtocol, LoadingProtocol {
 
     var disposeBag = DisposeBag()
     let repo = TodoRepo(MockTodoDS())
-    
+
     private let isfetching = BehaviorRelay(value: false)
     private let errorRelay = BehaviorRelay<Error?>(value: nil)
     private let allItems = BehaviorRelay<[TodoModel]>(value: [])
@@ -132,8 +131,7 @@ class TodoListVM: ViewModelProtocol, RetryProtocol, LoadingProtocol {
 
             return sections
         }
-        
-        
+
         return Observable.combineLatest(
             selectedFilter.asObservable(), cachedGroup.asObservable()
         ).map { (filter, group) in
@@ -204,9 +202,7 @@ class TodoListVM: ViewModelProtocol, RetryProtocol, LoadingProtocol {
     }
 
     // MARK: - handle
-    private func retryCond(error: Observable<Error>) -> Observable<
-        Void
-    > {
+    private func retryCond(error: Observable<Error>) -> Observable<Void> {
         return error.withUnretained(self)
             .do { (self, error) in self.errorRelay.accept(error) }
             .map { (_, error) in error }
@@ -263,37 +259,31 @@ class TodoListVM: ViewModelProtocol, RetryProtocol, LoadingProtocol {
 
     // MARK: - async
     private func fetchItems() -> Single<[TodoModel]> {
-        return .deferred { [weak self] in
-            guard let self = self else { preconditionFailure("self 가 없습니다") }
-            
+        return .deferredWithUnretained(self) { retainedObj in
             return .async {
-                self.isfetching.accept(true)
-                return try await self.repo.fetchTodoList()
+                return try await retainedObj.repo.fetchTodoList()
                     .map { $0.asTodoModel }
-            }.handleLoadingState { isLoading in
-                self.isfetching.accept(!isLoading)
+            }
+            .handleLoadingState { isLoading in
+                retainedObj.isfetching.accept(isLoading)
             }
         }
-
     }
 
     private func deleteTodo(todo: TodoModel) -> Single<TodoModel> {
-        return .deferred { [weak self] in
-            guard let self = self else { preconditionFailure("self 가 없습니다") }
-            
+
+        return .deferredWithUnretained(self) { retainedObj in
             return .async {
-                let _ = try await self.repo.deleteTodo(todo.id)
+                let _ = try await retainedObj.repo.deleteTodo(todo.id)
                 return todo
             }
         }
     }
 
     private func updateDone(newTodo: TodoModel) -> Single<TodoModel> {
-        return .deferred { [weak self] in
-            guard let self = self else { preconditionFailure("self 가 없습니다") }
-
+        return .deferredWithUnretained(self) { retainedObj in
             return .async {
-                let updated = try await self.repo.updateTodo(newTodo)
+                let updated = try await retainedObj.repo.updateTodo(newTodo)
                 return updated.asTodoModel
             }
         }
