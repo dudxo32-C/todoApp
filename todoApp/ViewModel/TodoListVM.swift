@@ -39,9 +39,9 @@ enum ToDoListError: Error {
     case notFound
 }
 
-
 // MARK: - VM
-class TodoListVM: ViewModelProtocol, RetryProtocol {
+class TodoListVM: ViewModelProtocol, RetryProtocol, LoadingProtocol {
+
     struct Input: CommonRetryInput {
         let fetchItems: PublishRelay<Void>
         let addedItem: PublishRelay<TodoModelProtocol>
@@ -52,8 +52,8 @@ class TodoListVM: ViewModelProtocol, RetryProtocol {
         let retryTrigger: PublishRelay<RetryAction>
     }
 
-    struct Output {
-        let isFetching: Driver<Bool>
+    struct Output: LoadingOutput {
+        let isLoading: Driver<Bool>
         let items: Driver<[TodoSection]>
         let error: Driver<Error?>
     }
@@ -73,7 +73,7 @@ class TodoListVM: ViewModelProtocol, RetryProtocol {
     var disposeBag = DisposeBag()
     let repo = TodoRepo(MockTodoDS())
 
-    private let isfetchingRelay = BehaviorRelay(value: false)
+    private let isfetching = BehaviorRelay(value: false)
     private let errorRelay = BehaviorRelay<Error?>(value: nil)
     private let allItems = BehaviorRelay<[TodoModel]>(value: [])
     private let cachedGroup = BehaviorRelay<TodoGroup>(value: [:])
@@ -106,38 +106,37 @@ class TodoListVM: ViewModelProtocol, RetryProtocol {
     // MARK: - Transform
     private func transform() -> Output {
         return Output(
-            isFetching: isfetchingRelay.asDriver(),
+            isLoading: isfetching.asDriver(),
             items: makeItemsDriver(),
             error: errorRelay.asDriver()
         )
     }
-
-    private func makeSectionByDate(_ todos: [TodoModel]) -> [TodoSection] {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy/MM/dd"
-        formatter.locale = Locale(identifier: "ko_KR")
-
-        let grouped = Dictionary(grouping: todos) { todo in
-            formatter.string(from: todo.date)
-        }
-
-        let sections =
-            grouped
-            .map { key, value in
-                TodoSection(header: key, items: value)
-            }
-            .sorted { $0.header < $1.header }  // 날짜순 정렬
-
-        return sections
-    }
-
     // view 에서 사용할 items
     private func makeItemsDriver() -> Driver<[TodoSection]> {
+        func makeSectionByDate(_ todos: [TodoModel]) -> [TodoSection] {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "yyyy/MM/dd"
+            formatter.locale = Locale(identifier: "ko_KR")
+
+            let grouped = Dictionary(grouping: todos) { todo in
+                formatter.string(from: todo.date)
+            }
+
+            let sections =
+                grouped
+                .map { key, value in
+                    TodoSection(header: key, items: value)
+                }
+                .sorted { $0.header < $1.header }  // 날짜순 정렬
+
+            return sections
+        }
+
         return Observable.combineLatest(
             selectedFilter.asObservable(), cachedGroup.asObservable()
         ).map { (filter, group) in
             let arr = group[filter] ?? []
-            return self.makeSectionByDate(arr)
+            return makeSectionByDate(arr)
         }
         .asDriver(onErrorJustReturn: [])
     }
@@ -203,9 +202,7 @@ class TodoListVM: ViewModelProtocol, RetryProtocol {
     }
 
     // MARK: - handle
-    private func retryCond(error: Observable<Error>) -> Observable<
-        Void
-    > {
+    private func retryCond(error: Observable<Error>) -> Observable<Void> {
         return error.withUnretained(self)
             .do { (self, error) in self.errorRelay.accept(error) }
             .map { (_, error) in error }
@@ -262,37 +259,31 @@ class TodoListVM: ViewModelProtocol, RetryProtocol {
 
     // MARK: - async
     private func fetchItems() -> Single<[TodoModel]> {
-        return .deferred { [weak self] in
-            guard let self = self else { preconditionFailure("self 가 없습니다") }
-
-            return Single.async {
-                self.isfetchingRelay.accept(true)
-                return try await self.repo.fetchTodoList()
+        return .deferredWithUnretained(self) { retainedObj in
+            return .async {
+                return try await retainedObj.repo.fetchTodoList()
                     .map { $0.asTodoModel }
-            } onDispose: {
-                self.isfetchingRelay.accept(false)
+            }
+            .handleLoadingState { isLoading in
+                retainedObj.isfetching.accept(isLoading)
             }
         }
-
     }
 
     private func deleteTodo(todo: TodoModel) -> Single<TodoModel> {
-        return .deferred { [weak self] in
-            guard let self = self else { preconditionFailure("self 가 없습니다") }
 
+        return .deferredWithUnretained(self) { retainedObj in
             return .async {
-                let _ = try await self.repo.deleteTodo(todo.id)
+                let _ = try await retainedObj.repo.deleteTodo(todo.id)
                 return todo
             }
         }
     }
 
     private func updateDone(newTodo: TodoModel) -> Single<TodoModel> {
-        return .deferred { [weak self] in
-            guard let self = self else { preconditionFailure("self 가 없습니다") }
-
+        return .deferredWithUnretained(self) { retainedObj in
             return .async {
-                let updated = try await self.repo.updateTodo(newTodo)
+                let updated = try await retainedObj.repo.updateTodo(newTodo)
                 return updated.asTodoModel
             }
         }

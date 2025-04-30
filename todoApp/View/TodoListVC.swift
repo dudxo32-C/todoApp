@@ -115,7 +115,7 @@ class TodoListVC: UIViewController {
 
     // MARK: - Binding
     private func bindLoading() {
-        self.viewModel.output.isFetching
+        self.viewModel.output.isLoading
             .drive(loadingIndicator.rx.isAnimating)
             .disposed(by: disposeBag)
     }
@@ -177,7 +177,7 @@ class TodoListVC: UIViewController {
 
     private func bindNoListLabel() {
         let isFetching = self.viewModel.output
-            .isFetching
+            .isLoading
             .asObservable()
 
         let isEmptyItems = viewModel.output.items
