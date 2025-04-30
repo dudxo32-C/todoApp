@@ -45,7 +45,7 @@ class TodoListVM: ViewModelProtocol, RetryProtocol, LoadingProtocol {
     struct Input: CommonRetryInput {
         let fetchItems: PublishRelay<Void>
         let addedItem: PublishRelay<TodoModelProtocol>
-        let changedItem: PublishRelay<TodoModelProtocol>
+        let edittedItem: PublishRelay<TodoModelProtocol>
         let tapDelete: PublishRelay<TodoModelProtocol>
         let tapFilter: PublishRelay<TodoFilterType>
         let toggleDone: PublishRelay<TodoModelProtocol>
@@ -83,7 +83,7 @@ class TodoListVM: ViewModelProtocol, RetryProtocol, LoadingProtocol {
         self.input = Input(
             fetchItems: PublishRelay(),
             addedItem: PublishRelay(),
-            changedItem: PublishRelay(),
+            edittedItem: PublishRelay(),
             tapDelete: PublishRelay(),
             tapFilter: PublishRelay(),
             toggleDone: PublishRelay(),
@@ -95,12 +95,12 @@ class TodoListVM: ViewModelProtocol, RetryProtocol, LoadingProtocol {
         bindFetchItemsToAll()
         bindAllToCacheGroup()
 
-        bindSelectedFilter()
+        bindFilterTapToSelected()
 
         bindToggleDoneToAll()
-        bindChangedToAll()
-        bindAddedToCache()
-        bindTapDeleteToCache()
+        bindChangedItemToAll()
+        bindAddedItemToAll()
+        bindTapDeleteToAll()
     }
 
     // MARK: - Transform
@@ -159,17 +159,17 @@ class TodoListVM: ViewModelProtocol, RetryProtocol, LoadingProtocol {
     }
 
     // 탭 클릭 데이터 저장
-    private func bindSelectedFilter() {
+    private func bindFilterTapToSelected() {
         input.tapFilter
             .bind(to: self.selectedFilter)
             .disposed(by: disposeBag)
     }
 
-    private func bindChangedToAll() {
-        input.changedItem
+    private func bindChangedItemToAll() {
+        input.edittedItem
             .asTodoModel
             .withUnretained(self)
-            .flatMap { (self, changed) in self.handleChange(changed) }
+            .flatMap { (self, changed) in self.handleEditted(new: changed) }
             .bind(to: self.allItems)
             .disposed(by: self.disposeBag)
     }
@@ -183,21 +183,21 @@ class TodoListVM: ViewModelProtocol, RetryProtocol, LoadingProtocol {
             .disposed(by: self.disposeBag)
     }
 
-    private func bindAddedToCache() {
+    private func bindAddedItemToAll() {
         self.input.addedItem
             .asTodoModel
             .withUnretained(self)
-            .map { (self, newItem) in self.handleAddedItem(newItem) }
-            .bind(to: self.cachedGroup)
+            .map { (self, newItem) in self.addItemInLocal(newItem) }
+            .bind(to: self.allItems)
             .disposed(by: self.disposeBag)
     }
 
-    private func bindTapDeleteToCache() {
+    private func bindTapDeleteToAll() {
         self.input.tapDelete
             .asTodoModel
             .withUnretained(self)
-            .flatMap { (self, value) in self.handleDeleteItem(value) }
-            .bind(to: self.cachedGroup)
+            .flatMap { (self, value) in self.handleDeleteItem(target: value) }
+            .bind(to: self.allItems)
             .disposed(by: self.disposeBag)
     }
 
@@ -212,20 +212,17 @@ class TodoListVM: ViewModelProtocol, RetryProtocol, LoadingProtocol {
     private func handleFetching() -> Single<[TodoModel]> {
         return self.fetchItems()
             .retry(when: retryCond)
-            .catch { error in
-                print(error)
-                return .never()
-            }
+            .catch { _ in .never() }
     }
 
-    private func handleDeleteItem(_ target: TodoModel) -> Observable<TodoGroup>
+    private func handleDeleteItem(target: TodoModel) -> Observable<[TodoModel]>
     {
         return deleteTodo(todo: target)
             .asObservable()
             .withUnretained(self)
-            .map { (self, removed) in self.deleteItemInGroup(removed) }
+            .map { (self, removed) in self.deleteItemInLocal(removed) }
             .retry(when: retryCond)
-            .catch { _ in .never() }
+            .catch { _ in .empty() }
     }
 
     private func handleToggleDone(oldTodo: TodoModel) -> Observable<[TodoModel]>
@@ -235,26 +232,24 @@ class TodoListVM: ViewModelProtocol, RetryProtocol, LoadingProtocol {
         return updateDone(newTodo: toggled)
             .asObservable()
             .withUnretained(self)
-            .map { (self, updated) in try self.changeItemInAll(updated) }
+            .map { (self, updated) in try self.changeItemInLocal(updated) }
             .retry(when: retryCond)
-            .catch { _ in .never() }
+            .catch { _ in .empty() }
     }
 
-    private func handleChange(_ changed: TodoModel) -> Observable<[TodoModel]> {
-        do {
-            let updated = try changeItemInAll(changed)
-            return .just(updated)
-        } catch {
-            return Observable.never()
+    private func handleEditted(new: TodoModel) -> Observable<[TodoModel]> {
+
+        return .deferred {
+            do {
+                let changedList = try self.changeItemInLocal(new)
+
+                return .just(changedList)
+            } catch {
+                return .error(error)
+            }
         }
-    }
-
-    private func handleAddedItem(_ added: TodoModel) -> TodoGroup {
-        let filterType = getDateFilter(added)
-        let currentArr = cachedGroup.value[filterType] ?? []
-        let newArr = currentArr + [added]
-
-        return changeGroupItem(items: newArr, type: filterType)
+        .retry(when: retryCond)
+        .catch { _ in .empty() }
     }
 
     // MARK: - async
@@ -271,7 +266,6 @@ class TodoListVM: ViewModelProtocol, RetryProtocol, LoadingProtocol {
     }
 
     private func deleteTodo(todo: TodoModel) -> Single<TodoModel> {
-
         return .deferredWithUnretained(self) { retainedObj in
             return .async {
                 let _ = try await retainedObj.repo.deleteTodo(todo.id)
@@ -290,34 +284,33 @@ class TodoListVM: ViewModelProtocol, RetryProtocol, LoadingProtocol {
     }
 
     // MARK: -
-    private func getDateFilter(_ todo: TodoModel) -> TodoFilterType {
-        let comparison = Calendar.current.compare(
-            todo.date, to: Date(), toGranularity: .day)
+    private func makeTapGroup(_ items: [TodoModel]) -> TodoGroup {
+        return Dictionary(grouping: items) { item in
+            let comparison = Calendar.current.compare(
+                item.date,
+                to: Date(),
+                toGranularity: .day
+            )
 
-        switch comparison {
-        case .orderedAscending:
-            return TodoFilterType.past
-        case .orderedSame:
-            return TodoFilterType.today
-        case .orderedDescending:
-            return TodoFilterType.future
+            switch comparison {
+            case .orderedAscending:
+                return TodoFilterType.past
+            case .orderedSame:
+                return TodoFilterType.today
+            case .orderedDescending:
+                return TodoFilterType.future
+            }
         }
     }
 
-    private func changeGroupItem(items: [TodoModel], type: TodoFilterType)
-        -> TodoGroup
-    {
-        var currentGroup = self.cachedGroup.value
+    private func addItemInLocal(_ newTodo: TodoModel) -> [TodoModel] {
+        var currentAll = allItems.value
+        currentAll.append(newTodo)
 
-        currentGroup[type] = items
-        return currentGroup
+        return currentAll
     }
 
-    private func makeTapGroup(_ items: [TodoModel]) -> TodoGroup {
-        return Dictionary(grouping: items, by: getDateFilter(_:))
-    }
-
-    private func changeItemInAll(_ newTodo: TodoModel) throws -> [TodoModel] {
+    private func changeItemInLocal(_ newTodo: TodoModel) throws -> [TodoModel] {
         var currentAll = allItems.value
 
         let targetIndex = currentAll.firstIndex { $0.id == newTodo.id }
@@ -328,29 +321,11 @@ class TodoListVM: ViewModelProtocol, RetryProtocol, LoadingProtocol {
         return currentAll
     }
 
-    private func deleteItemInGroup(_ removed: TodoModel) -> TodoGroup {
-        let filterType = self.getDateFilter(removed)
-        let currentArr = self.cachedGroup.value[filterType] ?? []
+    private func deleteItemInLocal(_ removed: TodoModel) -> [TodoModel] {
+        let current = self.allItems.value
+        let removedList = current.filter { $0.id != removed.id }
 
-        // 삭제된 todo 의 날짜 그룹에서 있는지 확인
-        let isHave = currentArr.contains(where: { $0.id == removed.id })
-
-        if isHave {
-            let arr = currentArr.filter {
-                $0.id != removed.id
-            }
-
-            return self.changeGroupItem(items: arr, type: filterType)
-
-        } else {
-            // 그룹에서 찾아지지 않을경우 전체에서 한번더 검색
-            let arr = self.allItems.value.filter {
-                $0.id != removed.id
-            }
-
-            // 새롭게 그룹화
-            return self.makeTapGroup(arr)
-        }
+        return removedList
     }
 }
 
