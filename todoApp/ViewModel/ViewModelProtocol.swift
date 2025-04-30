@@ -8,6 +8,7 @@
 import Foundation
 import RxRelay
 import RxSwift
+import RxCocoa
 
 protocol ViewModelProtocol {
     associatedtype Input
@@ -43,3 +44,10 @@ extension RetryProtocol {
     }
 
 }
+
+// MARK: - 로딩 인디케이터 프로토콜
+protocol LoadingOutput {
+    var isLoading: Driver<Bool> { get }
+}
+
+protocol LoadingProtocol: ViewModelProtocol where Output: LoadingOutput {}
