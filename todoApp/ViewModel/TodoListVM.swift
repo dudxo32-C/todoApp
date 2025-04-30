@@ -268,8 +268,8 @@ class TodoListVM: ViewModelProtocol, RetryProtocol, LoadingProtocol {
     private func deleteTodo(todo: TodoModel) -> Single<TodoModel> {
         return .deferredWithUnretained(self) { retainedObj in
             return .async {
-                let _ = try await retainedObj.repo.deleteTodo(todo.id)
-                return todo
+                let response = try await retainedObj.repo.deleteTodo(todo.id)
+                return response.asTodoModel
             }
         }
     }
