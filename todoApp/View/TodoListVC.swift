@@ -62,14 +62,34 @@ class TodoListVC: UIViewController {
 
     let viewModel: TodoListVM
     let initFilter: TodoFilterType
-    
+
     // MARK: - RX
+    struct Input {
+        let didFinishPresentCreateVC = PublishRelay<CreateTodoVC>()
+        let didFinishPresentEditVC = PublishRelay<EditTodoVC>()
+    }
+
+    struct Output {
+        let presentCreateVC: Driver<Void>
+        let presentEditVC: Driver<TodoModelProtocol>
+    }
+
+    let input = Input()
+    let output: Output
+
+    let goCreateVC = PublishRelay<Void>()
+    let goEditVC = PublishRelay<TodoModelProtocol>()
+
     let disposeBag = DisposeBag()
 
     init(initFilter: TodoFilterType, vm: TodoListVM) {
         self.viewModel = vm
         self.initFilter = initFilter
-        
+        self.output = Output(
+            presentCreateVC: goCreateVC.asDriver(onErrorJustReturn: ()),
+            presentEditVC: goEditVC.asDriver(onErrorDriveWith: .empty())
+        )
+
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -85,13 +105,13 @@ class TodoListVC: UIViewController {
         tabBar.selectedItem = {
             return tabBar.items?.first { $0.tag == initFilter.rawValue }
         }()
-        
+
         // ✅ 오른쪽 버튼 추가
         navigationItem.rightBarButtonItem = UIBarButtonItem(
             image: UIImage.add,
             style: .plain,
             target: self,
-            action: #selector(newTodoTap)
+            action: nil
         )
 
         self.view.addSubview(self.tableView)
@@ -117,7 +137,10 @@ class TodoListVC: UIViewController {
         self.bindTableView()
         self.bindNoListLabel()
         self.bindErrorAlert()
-
+        self.bindCreateTodoTap()
+        self.bindFinishPresentCreateVC()
+        self.bindFinishPresentEditVC()
+        
         viewModel.input.fetchItems.accept(())
     }
 
@@ -167,7 +190,7 @@ class TodoListVC: UIViewController {
                     .when(.recognized)
                     .withUnretained(self)
                     .bind { (self, _) in
-                        self.goEditScreen(cell.todoModel)
+                        self.goEditVC.accept(cell.todoModel)
                     }
                     .disposed(by: cell.disposeBag)
 
@@ -203,27 +226,33 @@ class TodoListVC: UIViewController {
             .disposed(by: disposeBag)
     }
 
-    // MARK: -
-    // TODO: Coordinator 패턴 적용하기
-    @objc private func newTodoTap() {
-        let newVC = EditableTodoDIContainer().makeCreateTodoVC()
-        let modalNavi = UINavigationController(rootViewController: newVC)
-        self.navigationController?.present(modalNavi, animated: true)
-
-        newVC.writtenTodo.subscribe(onNext: { [weak self] todo in
-            self?.viewModel.input.addedItem.accept(todo)
-        }).disposed(by: disposeBag)
+    private func bindFinishPresentCreateVC() {
+        input.didFinishPresentCreateVC
+            .flatMap { vc in vc.writtenTodo }
+            .withUnretained(self)
+            .bind { (self, todo) in
+                self.viewModel.input.addedItem.accept(todo)
+            }
+            .disposed(by: disposeBag)
     }
 
-    private func goEditScreen(_ todo: TodoModelProtocol) {
-        let newVC = EditableTodoDIContainer().makeEditTodoVC(todoModel: todo)
-        let modalNavi = UINavigationController(rootViewController: newVC)
-        self.navigationController?.present(modalNavi, animated: true)
-
-        newVC.writtenTodo.subscribe(onNext: { [weak self] todo in
-            self?.viewModel.input.edittedItem.accept(todo)
-        }).disposed(by: disposeBag)
+    private func bindCreateTodoTap() {
+        navigationItem.rightBarButtonItem?.rx
+            .tap.withUnretained(self)
+            .bind(onNext: { (self, _) in self.goCreateVC.accept(()) })
+            .disposed(by: disposeBag)
     }
+
+    private func bindFinishPresentEditVC() {
+        input.didFinishPresentEditVC
+            .flatMap { vc in vc.writtenTodo }
+            .withUnretained(self)
+            .bind { (self, todo) in
+                self.viewModel.input.edittedItem.accept(todo)
+            }
+            .disposed(by: disposeBag)
+    }
+
 }
 
 extension TodoListVC: UITableViewDelegate {
@@ -250,13 +279,15 @@ extension TodoListVC: UITableViewDelegate {
 
 extension TodoListVC: UITabBarDelegate {
     func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) {
-        guard let selectedFilter = TodoFilterType.values.first( where: { type in
-            type.rawValue == item.tag
-        }) else {
+        guard
+            let selectedFilter = TodoFilterType.values.first(where: { type in
+                type.rawValue == item.tag
+            })
+        else {
             assertionFailure("not found tag")
             return
         }
-        
+
         viewModel.input.tapFilter.accept(selectedFilter)
     }
 }

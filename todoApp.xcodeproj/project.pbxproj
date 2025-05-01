@@ -44,6 +44,8 @@
 		C99048382998A5A6004AD091 /* UIButtonEX.swift in Sources */ = {isa = PBXBuildFile; fileRef = C99048372998A5A6004AD091 /* UIButtonEX.swift */; };
 		C9AE73052DC333A300F1C5EE /* TodoListDIContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9AE73042DC333A300F1C5EE /* TodoListDIContainer.swift */; };
 		C9AE73072DC334EA00F1C5EE /* TodoRepositoryAssembly.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9AE73062DC334EA00F1C5EE /* TodoRepositoryAssembly.swift */; };
+		C9AE730A2DC354B400F1C5EE /* TodoListCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9AE73092DC354B400F1C5EE /* TodoListCoordinator.swift */; };
+		C9AE730C2DC354CD00F1C5EE /* CoordinatorProcotocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9AE730B2DC354CD00F1C5EE /* CoordinatorProcotocol.swift */; };
 		C9AFC9C82DACDD8C0083D50B /* TodoCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9AFC9C72DACDD8C0083D50B /* TodoCell.swift */; };
 		C9CBB8432D9D097A00747A70 /* TextInputStackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9CBB8422D9D097A00747A70 /* TextInputStackView.swift */; };
 		C9CBB8452D9D24AE00747A70 /* DateInputStackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9CBB8442D9D24AE00747A70 /* DateInputStackView.swift */; };
@@ -105,6 +107,8 @@
 		C99048372998A5A6004AD091 /* UIButtonEX.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIButtonEX.swift; sourceTree = "<group>"; };
 		C9AE73042DC333A300F1C5EE /* TodoListDIContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoListDIContainer.swift; sourceTree = "<group>"; };
 		C9AE73062DC334EA00F1C5EE /* TodoRepositoryAssembly.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoRepositoryAssembly.swift; sourceTree = "<group>"; };
+		C9AE73092DC354B400F1C5EE /* TodoListCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoListCoordinator.swift; sourceTree = "<group>"; };
+		C9AE730B2DC354CD00F1C5EE /* CoordinatorProcotocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoordinatorProcotocol.swift; sourceTree = "<group>"; };
 		C9AFC9C72DACDD8C0083D50B /* TodoCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoCell.swift; sourceTree = "<group>"; };
 		C9CBB8422D9D097A00747A70 /* TextInputStackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextInputStackView.swift; sourceTree = "<group>"; };
 		C9CBB8442D9D24AE00747A70 /* DateInputStackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateInputStackView.swift; sourceTree = "<group>"; };
@@ -179,6 +183,7 @@
 		04457ECF28A6033B00AF2EBB /* todoApp */ = {
 			isa = PBXGroup;
 			children = (
+				C9AE73082DC3549E00F1C5EE /* Coordinator */,
 				C9CBB8412D9D096100747A70 /* Widget */,
 				C925135A2D782C8F004E2D5B /* Data */,
 				C92513592D782C86004E2D5B /* Model */,
@@ -311,6 +316,15 @@
 				C9DB5FB32D7EAF0B00B72B5D /* TodoRepo.swift */,
 			);
 			path = Remote;
+			sourceTree = "<group>";
+		};
+		C9AE73082DC3549E00F1C5EE /* Coordinator */ = {
+			isa = PBXGroup;
+			children = (
+				C9AE73092DC354B400F1C5EE /* TodoListCoordinator.swift */,
+				C9AE730B2DC354CD00F1C5EE /* CoordinatorProcotocol.swift */,
+			);
+			path = Coordinator;
 			sourceTree = "<group>";
 		};
 		C9CBB8412D9D096100747A70 /* Widget */ = {
@@ -536,6 +550,7 @@
 				C95B652B2D9E7F3600F05436 /* I18N.swift in Sources */,
 				C910D42B2DBA29880095A249 /* RxSwiftEX.swift in Sources */,
 				C9083E9628E077EF006DEF47 /* UIColorEx.swift in Sources */,
+				C9AE730A2DC354B400F1C5EE /* TodoListCoordinator.swift in Sources */,
 				C95B65242D9E6D8600F05436 /* VerticalScrollView.swift in Sources */,
 				C925135E2D782E38004E2D5B /* TodoDTO.swift in Sources */,
 				C92513562D782346004E2D5B /* TodoTarget.swift in Sources */,
@@ -543,6 +558,7 @@
 				04457ED528A6033B00AF2EBB /* LaunchViewController.swift in Sources */,
 				C92513662D783997004E2D5B /* TodoModel.swift in Sources */,
 				C9AE73052DC333A300F1C5EE /* TodoListDIContainer.swift in Sources */,
+				C9AE730C2DC354CD00F1C5EE /* CoordinatorProcotocol.swift in Sources */,
 				C9DB5FB92D801F7600B72B5D /* TodoRealm.swift in Sources */,
 				04457ED128A6033B00AF2EBB /* AppDelegate.swift in Sources */,
 				C9AE73072DC334EA00F1C5EE /* TodoRepositoryAssembly.swift in Sources */,
