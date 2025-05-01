@@ -189,14 +189,22 @@ class MockTodoDS: TodoDS {
         )
     }
 
-    override func deleteTodo(id: String) async throws -> String {
+    override func deleteTodo(id: String) async throws -> TodoModelProtocol {
         let target = try self.getData(id: id)
 
+        let temp = TodoModel(
+            id: target._id,
+            title: target.title,
+            date: target.date,
+            contents: target.contents,
+            isDone: target.isDone
+        )
+        
         try realm.write {
             try realm.delete(target)
         }
 
-        return id
+        return temp
 
     }
 
