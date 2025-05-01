@@ -34,42 +34,47 @@ class TodoListVC: UIViewController {
     }()
 
     private let tabBar = UITabBar().then {
-        let pastItem = UITabBarItem(
-            title: I18N.past, image: UIImage(systemName: "arrow.left.circle"),
-            tag: 2
-        )
+        $0.items = [
+            UITabBarItem(
+                title: I18N.past,
+                image: UIImage(systemName: "arrow.left.circle"),
+                tag: TodoFilterType.past.rawValue
+            ),
 
-        let todayItem = UITabBarItem(
-            title: I18N.today, image: UIImage(systemName: "calendar.circle"),
-            tag: 0
-        )
+            UITabBarItem(
+                title: I18N.today,
+                image: UIImage(systemName: "calendar.circle"),
+                tag: TodoFilterType.today.rawValue
+            ),
 
-        let futureItem = UITabBarItem(
-            title: I18N.future,
-            image: UIImage(systemName: "arrow.right.circle"),
-            tag: 1
-        )
-
-        $0.items = [pastItem, todayItem, futureItem]
-        $0.selectedItem = todayItem
+            UITabBarItem(
+                title: I18N.future,
+                image: UIImage(systemName: "arrow.right.circle"),
+                tag: TodoFilterType.future.rawValue
+            ),
+        ]
 
         let appearanceTabbar = UITabBarAppearance()
         appearanceTabbar.configureWithOpaqueBackground()
         appearanceTabbar.backgroundColor = UIColor.white
         $0.standardAppearance = appearanceTabbar
     }
-    let viewModel = TodoListVM(TodoFilterType.today)
 
+    let viewModel: TodoListVM
+    let initFilter: TodoFilterType
+    
     // MARK: - RX
     let disposeBag = DisposeBag()
 
-    init() {
+    init(initFilter: TodoFilterType, vm: TodoListVM) {
+        self.viewModel = vm
+        self.initFilter = initFilter
+        
         super.init(nibName: nil, bundle: nil)
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
-
     }
 
     override func viewDidLoad() {
@@ -77,7 +82,10 @@ class TodoListVC: UIViewController {
 
         tableView.delegate = self
         tabBar.delegate = self
-
+        tabBar.selectedItem = {
+            return tabBar.items?.first { $0.tag == initFilter.rawValue }
+        }()
+        
         // ✅ 오른쪽 버튼 추가
         navigationItem.rightBarButtonItem = UIBarButtonItem(
             image: UIImage.add,
@@ -242,16 +250,14 @@ extension TodoListVC: UITableViewDelegate {
 
 extension TodoListVC: UITabBarDelegate {
     func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) {
-        switch item.tag {
-        case 0:
-            viewModel.input.tapFilter.accept(.today)
-        case 1:
-            viewModel.input.tapFilter.accept(.future)
-        case 2:
-            viewModel.input.tapFilter.accept(.past)
-        default:
-            break
+        guard let selectedFilter = TodoFilterType.values.first( where: { type in
+            type.rawValue == item.tag
+        }) else {
+            assertionFailure("not found tag")
+            return
         }
+        
+        viewModel.input.tapFilter.accept(selectedFilter)
     }
 }
 

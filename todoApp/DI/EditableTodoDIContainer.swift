@@ -17,7 +17,7 @@ class EditableTodoDIContainer {
         
         self.assembler = Assembler(
             [
-                TodoEditRepositoryAssembly(),
+                TodoRepositoryAssembly(),
                 TodoEditableAssembly(),
             ],
             container: self.container
@@ -35,35 +35,6 @@ class EditableTodoDIContainer {
             EditTodoVC.self,
             arguments: env, todoModel
         )
-    }
-}
-
-final class TodoEditRepositoryAssembly: Assembly {
-    func assemble(container: Container) {
-#if DEBUG
-        // Mock DataSource 등록
-        container.register(MockTodoDS.self) { _ in
-            MockTodoDS()
-        }.inObjectScope(.container)
-#endif
-        
-        // DataSource 등록
-        container.register(TodoDS.self) { _ in
-            TodoDS()
-        }.inObjectScope(.container)
-        // Repository 등록
-        container.register(TodoRepo.self) { (r, env: DataEnvironment) in
-            let dataSource: TodoDataSourceProvider = {
-                switch env {
-                case .mock:
-                    return r.resolve(MockTodoDS.self)!
-                case .real:
-                    return r.resolve(TodoDS.self)!
-                }
-            }()
-            
-            return TodoRepo(dataSource)
-        }.inObjectScope(.container)
     }
 }
 
