@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Differentiator
 
 protocol TodoModelProtocol {
     var id: String { get }
@@ -71,4 +72,8 @@ extension TodoModel: Equatable {
             isDone: isDone ?? self.isDone
         )
     }
+}
+
+extension TodoModel: IdentifiableType {
+    var identity: String { self.id }
 }

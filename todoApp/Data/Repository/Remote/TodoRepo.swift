@@ -18,7 +18,7 @@ protocol TodoDataSourceProvider {
     func writeTodo(title: String, contents: String, date: Date) async throws
         -> TodoResponseDTO
 
-    func deleteTodo(id: String) async throws -> String
+    func deleteTodo(id: String) async throws -> TodoModelProtocol
 
     func updateTodo(todo: TodoModelProtocol) async throws -> TodoResponseDTO
 }
@@ -69,7 +69,7 @@ class TodoRepo {
     /// 할일 목록 삭제하기
     /// - Throws: ``NetworkError``, ``TodoError``
     /// - Returns: Todo 모델의 `id`
-    func deleteTodo(_ id: String) async throws -> String {
+    func deleteTodo(_ id: String) async throws -> TodoModelProtocol {
         let response = try await dataSource.deleteTodo(id: id)
 
         return response
@@ -78,9 +78,10 @@ class TodoRepo {
     /// 할일 목록 수정하기
     /// - Throws: ``NetworkError``, ``TodoError``
     /// - Returns: `Todo` 데이터 모델
-    func updateTodo(_ todo: TodoModelProtocol) async throws -> TodoModelProtocol {
+    func updateTodo(_ todo: TodoModelProtocol) async throws -> TodoModelProtocol
+    {
         let response = try await dataSource.updateTodo(todo: todo)
-        
+
         return TodoModel(
             id: response.id,
             title: response.title,
@@ -119,15 +120,21 @@ class TodoDS: TodoDataSourceProvider {
     func writeTodo(title: String, contents: String, date: Date) async throws
         -> TodoResponseDTO
     {
-        throw NSError(domain: "", code: 0, userInfo: nil)
+        preconditionFailure(
+            "Subclasses must implement writeTodo(title:contents:date:)"
+        )
     }
 
-    func deleteTodo(id: String) async throws -> String {
-        throw NSError(domain: "", code: 0, userInfo: nil)
+    func deleteTodo(id: String) async throws -> TodoModelProtocol {
+        preconditionFailure(
+            "Subclasses must implement deleteTodo(id:)"
+        )
     }
 
     func updateTodo(todo: TodoModelProtocol) async throws -> TodoResponseDTO {
-        throw NSError(domain: "", code: 0, userInfo: nil)
+        preconditionFailure(
+            "Subclasses must implement updateTodo(todo:)"
+        )
     }
 
 }

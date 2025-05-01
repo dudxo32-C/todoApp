@@ -214,7 +214,7 @@ class TodoListVC: UIViewController {
         self.navigationController?.present(modalNavi, animated: true)
 
         newVC.writtenTodo.subscribe(onNext: { [weak self] todo in
-            self?.viewModel.input.changedItem.accept(todo)
+            self?.viewModel.input.edittedItem.accept(todo)
         }).disposed(by: disposeBag)
     }
 }
