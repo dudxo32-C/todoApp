@@ -30,8 +30,14 @@ extension TodoSection: SectionModelType {
 // MARK: -  데이터 캐싱 및 분리 타입
 private typealias TodoGroup = [TodoFilterType: [TodoModel]]
 
-enum TodoFilterType {
-    case past, today, future
+enum TodoFilterType: Int {
+    case past = 2
+    case today = 0
+    case future = 1
+    
+    static var values :[TodoFilterType] {
+        return [.today, .future, .past]
+    }
 }
 
 // MARK: - Error 리스트
@@ -71,7 +77,7 @@ class TodoListVM: ViewModelProtocol, RetryProtocol, LoadingProtocol {
     }
 
     var disposeBag = DisposeBag()
-    let repo = TodoRepo(MockTodoDS())
+    let repo: TodoRepo
 
     private let isfetching = BehaviorRelay(value: false)
     private let errorRelay = BehaviorRelay<Error?>(value: nil)
@@ -79,7 +85,7 @@ class TodoListVM: ViewModelProtocol, RetryProtocol, LoadingProtocol {
     private let cachedGroup = BehaviorRelay<TodoGroup>(value: [:])
     private let selectedFilter: BehaviorRelay<TodoFilterType>
 
-    init(_ selectedFilter: TodoFilterType) {
+    init(_ repo: TodoRepo, initFilter: TodoFilterType) {
         self.input = Input(
             fetchItems: PublishRelay(),
             addedItem: PublishRelay(),
@@ -90,7 +96,8 @@ class TodoListVM: ViewModelProtocol, RetryProtocol, LoadingProtocol {
             retryTrigger: PublishRelay()
         )
 
-        self.selectedFilter = .init(value: selectedFilter)
+        self.repo = repo
+        self.selectedFilter = .init(value: initFilter)
 
         bindFetchItemsToAll()
         bindAllToCacheGroup()

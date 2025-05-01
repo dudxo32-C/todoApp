@@ -16,80 +16,69 @@ class EditableTodoDIContainer {
         self.container = Container(parent: parentContainer)
 
         self.assembler = Assembler(
-            [TodoEditableAssembly()],
+            [
+                TodoRepositoryAssembly(),
+                TodoEditableAssembly(),
+            ],
             container: self.container
         )
     }
 
-    func makeCreateTodoVC(_ type: DataEnvironment) -> CreateTodoVC {
-        return assembler.resolver.resolve(CreateTodoVC.self, argument: type)!
+    private func makeRepository(_ env: DataEnvironment) -> TodoRepo {
+        return assembler.resolver.resolveOrFail(TodoRepo.self, argument: env)
     }
 
-    func makeEditTodoVC(
-        todoModel: TodoModelProtocol,
-        _ type: DataEnvironment
-    ) -> EditTodoVC {
-        return assembler.resolver.resolve(
-            EditTodoVC.self, arguments: type, todoModel)!
+    func makeCreateTodoVC(_ env: DataEnvironment = .mock) -> CreateTodoVC {
+        let repo = makeRepository(env)
+
+        let vm = assembler.resolver.resolveOrFail(
+            CreateTodoVM.self,
+            argument: repo
+        )
+
+        return assembler.resolver
+            .resolveOrFail(CreateTodoVC.self, argument: vm)
+    }
+
+    func makeEditTodoVC(todoModel: TodoModelProtocol, _ env: DataEnvironment = .mock)
+    -> EditTodoVC
+    {
+        let repo = makeRepository(env)
+
+        let vm = assembler.resolver.resolveOrFail(
+            EditTodoVM.self,
+            arguments: repo, todoModel
+        )
+
+        return assembler.resolver.resolveOrFail(
+            EditTodoVC.self,
+            arguments: vm, todoModel
+        )
     }
 }
 
 final class TodoEditableAssembly: Assembly {
     func assemble(container: Container) {
-        // Repository 등록
-        container.register(TodoDS.self) { _ in
-            TodoDS()
-        }.inObjectScope(.container)
-
-        // Mock Repository 등록
-        container.register(MockTodoDS.self) { _ in
-            MockTodoDS()
-        }.inObjectScope(.container)
-
         // 생성 vm 등록
-        container.register(CreateTodoVM.self) { (r, env: DataEnvironment) in
-            let repo = self.getRepository(resolver: r, env)
-
-            return CreateTodoVM(repo)
+        container.register(CreateTodoVM.self) { (_, repo: TodoRepo) in
+            CreateTodoVM(repo)
         }
 
         // 생성 화면 등록
-        container.register(CreateTodoVC.self) { (r, env: DataEnvironment) in
-            let vm = r.resolve(CreateTodoVM.self, argument: env)!
-
-            return CreateTodoVC(vm)
+        container.register(CreateTodoVC.self) { (_, vm: CreateTodoVM) in
+            CreateTodoVC(vm)
         }
 
         // 수정 vm 등록
         container.register(EditTodoVM.self) {
-            (r, env: DataEnvironment, model: TodoModelProtocol) in
-            let repo = self.getRepository(resolver: r, env)
-
+            (_, repo: TodoRepo, model: TodoModelProtocol) in
             return EditTodoVM(model: model, repository: repo)
         }
 
         // 수정 화면 등록
         container.register(EditTodoVC.self) {
-            (r, env: DataEnvironment, model: TodoModelProtocol) in
-            let vm = r.resolve(EditTodoVM.self, arguments: env, model)!
-
+            (_, vm: EditTodoVM, model: TodoModelProtocol) in
             return EditTodoVC(model: model, viewModel: vm)
         }
     }
-
-    private func getRepository(resolver: Resolver, _ env: DataEnvironment)
-        -> TodoRepo
-    {
-        let dataSource: TodoDataSourceProvider = {
-            switch env {
-            case .mock:
-                return resolver.resolve(MockTodoDS.self)!
-            case .real:
-                return resolver.resolve(TodoDS.self)!
-            }
-        }()
-
-        return TodoRepo(dataSource)
-    }
-
 }
