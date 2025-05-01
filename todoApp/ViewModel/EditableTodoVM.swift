@@ -10,17 +10,19 @@ import RxCocoa
 import RxRelay
 import RxSwift
 
-extension EditableTodoVM: ViewModelProtocol {
-    struct Input {
+extension EditableTodoVM: ViewModelProtocol, LoadingProtocol, RetryProtocol {
+    struct Input: RetryInput {
         let titleRelay: BehaviorRelay<String>
         let dateRelay: BehaviorRelay<Date?>
         let contentRelay: BehaviorRelay<String>
         let doneTap = PublishRelay<Void>()
+        let retryTrigger = PublishRelay<RetryAction>()
     }
 
-    struct Output {
+    struct Output: LoadingOutput {
         let inputValid: Driver<Bool>
-        let writeTodoResult: Driver<Result<TodoModelProtocol, Error>>
+        let editedModel: Driver<TodoModelProtocol>
+        let editError: Driver<Error?>
         let isLoading: Driver<Bool>
     }
 }
@@ -33,8 +35,9 @@ class EditableTodoVM {
 
     // MARK: RX
     fileprivate let loadingRelay: BehaviorRelay<Bool> = .init(value: false)
-    private let createResultRelay:
-        PublishRelay<Result<TodoModelProtocol, Error>> = .init()
+    private let errorRelay: PublishRelay<Error?> = .init()
+    private let editedModelRelay: PublishRelay<TodoModelProtocol> = .init()
+
     fileprivate let inputValidRelay: Observable<Bool>
     var disposeBag = DisposeBag()
 
@@ -50,26 +53,35 @@ class EditableTodoVM {
 
         self.output = Output(
             inputValid: self.inputValidRelay.asDriver(onErrorJustReturn: false),
-            writeTodoResult: self.createResultRelay
-                .asDriver(onErrorDriveWith: .empty()),
+            editedModel: editedModelRelay.asDriver(onErrorDriveWith: .never()),
+            editError: errorRelay.asDriver(onErrorJustReturn: nil),
             isLoading: self.loadingRelay.asDriver()
         )
 
-        self.input.doneTap
-            .flatMap { self.doneTap() }
-            .subscribe(
-                onNext: { value in
-                    self.createResultRelay.accept(.success(value))
-                },
-                onError: { error in
-                    self.createResultRelay.accept(.failure(error))
-                }
-            )
-            .disposed(by: disposeBag)
-
+        bindDoneTap()
     }
 
-    fileprivate func doneTap() -> Single<TodoModel> {
+
+    private func bindDoneTap() {
+        self.input.doneTap
+            .withUnretained(self)
+            .flatMap { (self, _) in self.handleChangeTodo() }
+            .map { $0 as TodoModelProtocol }
+            .bind(to: editedModelRelay)
+            .disposed(by: disposeBag)
+    }
+
+    private func handleChangeTodo() -> Observable<TodoModel> {
+        return writeTodo()
+            .handleLoadingState(to: self.loadingRelay)
+            .retry(when: { error in
+                return self.handelRetry(from: error, in: self.errorRelay)
+            })
+            .catch { _ in .never() }
+            .asObservable()
+    }
+    
+    fileprivate func writeTodo() -> Single<TodoModel> {
         preconditionFailure("Subclasses must implement doneTap()")
     }
 }
@@ -96,21 +108,17 @@ class CreateTodoVM: EditableTodoVM {
         )
     }
 
-    override func doneTap() -> Single<TodoModel> {
+    override func writeTodo() -> Single<TodoModel> {
         guard let date = self.input.dateRelay.value else {
             preconditionFailure("date 값이 nil 입니다")
         }
 
         let title = self.input.titleRelay.value
         let contents = self.input.contentRelay.value
-
-        self.loadingRelay.accept(true)
-
-        return .deferred { [weak self] in
-            guard let self = self else { preconditionFailure("self 가 없습니다") }
-
+        
+        return .deferredWithUnretained(self) { retainedObj in
             return .async {
-                let response = try await self.repo.writeTodo(
+                let response = try await retainedObj.repo.writeTodo(
                     title: title,
                     contents: contents,
                     date: date
@@ -179,7 +187,7 @@ class EditTodoVM: EditableTodoVM {
             .disposed(by: disposeBag)
     }
 
-    override func doneTap() -> Single<TodoModel> {
+    override func writeTodo() -> Single<TodoModel> {
         guard let date = self.input.dateRelay.value else {
             preconditionFailure("date 값이 nil 입니다")
         }
@@ -187,21 +195,17 @@ class EditTodoVM: EditableTodoVM {
         let title = self.input.titleRelay.value
         let contents = self.input.contentRelay.value
 
-        self.loadingRelay.accept(true)
-
-        return .deferred { [weak self] in
-            guard let self = self else { preconditionFailure("self 가 없습니다") }
-
+        return .deferredWithUnretained(self) { retainedObj in
             return .async {
 
-                let newTodo = self.model.copyWith(
+                let newTodo = retainedObj.model.copyWith(
                     title: title,
                     date: date,
                     contents: contents
                 )
 
-                let response = try await self.repo.updateTodo(newTodo)
-                
+                let response = try await retainedObj.repo.updateTodo(newTodo)
+
                 return response.asTodoModel
             }
         }

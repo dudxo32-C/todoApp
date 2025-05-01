@@ -86,17 +86,28 @@ class EditableTodoVC: UIViewController {
             .disposed(by: self.disposeBag)
 
         // 생성, 수정 완료후 작업
-        self.viewModel.output.writeTodoResult.drive { result in
-            switch result {
-            case .success(let todo):
+        self.viewModel.output.editedModel
+            .drive(onNext: { todo in
                 self.didFinishWriting(todo)
-
-                break
-            case .failure(let error):
-                print(error)
+            })
+            .disposed(by: disposeBag)
+            
+            
+        self.viewModel.output.editError
+            .compactMap { $0?.localizedDescription }
+            .drive { e in
+                self.rx.showRetry(
+                    message: e,
+                    retryAction: { _ in
+                        self.viewModel.input.retryTrigger.accept(.retry)
+                    },
+                    confirmAction: { _ in
+                        self.viewModel.input.retryTrigger.accept(.none)
+                    }
+                )
 
             }
-        }.disposed(by: self.disposeBag)
+            .disposed(by: disposeBag)
     }
 
     // MARK: SetUI

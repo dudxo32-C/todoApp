@@ -6,11 +6,11 @@
 //
 
 import Foundation
+import RxCocoa
 import RxRelay
 import RxSwift
-import RxCocoa
 
-protocol ViewModelProtocol {
+protocol ViewModelProtocol: AnyObject {
     associatedtype Input
     associatedtype Output
 
@@ -23,13 +23,33 @@ protocol ViewModelProtocol {
 enum RetryAction { case retry, none }
 
 // 재시도 요청 input protocol
-protocol CommonRetryInput {
+protocol RetryInput {
     var retryTrigger: PublishRelay<RetryAction> { get }
 }
 
-protocol RetryProtocol: ViewModelProtocol where Input: CommonRetryInput {}
+protocol RetryProtocol: ViewModelProtocol where Input: RetryInput {}
 
 extension RetryProtocol {
+    func handelRetry(
+        from error: Observable<Error>, in store: PublishRelay<Error?>
+    ) -> Observable<Void> {
+        return error
+            .do{ error in store.accept(error) }
+            .withUnretained(self)
+            .flatMap { (self, error) in
+                return self.input.retryTrigger
+                    .flatMap { action in
+                        switch action {
+                        case .retry:
+                            return Observable.just(())
+
+                        case .none:
+                            return Observable.error(error)
+                        }
+                    }
+            }
+    }
+
     func handelRetry(_ error: Error) -> Observable<Void> {
         return self.input.retryTrigger
             .flatMap { action in
@@ -51,3 +71,18 @@ protocol LoadingOutput {
 }
 
 protocol LoadingProtocol: ViewModelProtocol where Output: LoadingOutput {}
+
+extension PrimitiveSequence where Trait == SingleTrait {
+    func handleLoadingState(
+        to changeState: BehaviorRelay<Bool>
+    ) -> Single<Element> {
+        return self.do(
+            onSubscribe: {
+                changeState.accept(true)
+            },
+            onDispose: {
+                changeState.accept(false)
+            }
+        )
+    }
+}
