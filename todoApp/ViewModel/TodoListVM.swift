@@ -46,8 +46,7 @@ enum ToDoListError: Error {
 }
 
 // MARK: - VM
-class TodoListVM: ViewModelProtocol, RetryProtocol, LoadingProtocol {
-
+extension TodoListVM: ViewModelProtocol {
     struct Input: CommonRetryInput {
         let fetchItems: PublishRelay<Void>
         let addedItem: PublishRelay<TodoModelProtocol>
@@ -63,9 +62,9 @@ class TodoListVM: ViewModelProtocol, RetryProtocol, LoadingProtocol {
         let items: Driver<[TodoSection]>
         let error: Driver<Error?>
     }
+}
 
-    var input: Input
-    private var _output: Output?
+class TodoListVM: RetryProtocol, LoadingProtocol {
     var output: Output {
         if let cached = _output {
             return cached
@@ -75,6 +74,9 @@ class TodoListVM: ViewModelProtocol, RetryProtocol, LoadingProtocol {
         _output = new
         return new
     }
+    
+    var input: Input
+    private var _output: Output?
 
     var disposeBag = DisposeBag()
     let repo: TodoRepo

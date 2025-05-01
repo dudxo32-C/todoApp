@@ -47,6 +47,7 @@
 		C9AE730A2DC354B400F1C5EE /* TodoListCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9AE73092DC354B400F1C5EE /* TodoListCoordinator.swift */; };
 		C9AE730C2DC354CD00F1C5EE /* CoordinatorProcotocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9AE730B2DC354CD00F1C5EE /* CoordinatorProcotocol.swift */; };
 		C9AE730E2DC371E300F1C5EE /* EditableTodoCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9AE730D2DC371E300F1C5EE /* EditableTodoCoordinator.swift */; };
+		C9AE73102DC3869A00F1C5EE /* Protocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9AE730F2DC3869A00F1C5EE /* Protocol.swift */; };
 		C9AFC9C82DACDD8C0083D50B /* TodoCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9AFC9C72DACDD8C0083D50B /* TodoCell.swift */; };
 		C9CBB8432D9D097A00747A70 /* TextInputStackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9CBB8422D9D097A00747A70 /* TextInputStackView.swift */; };
 		C9CBB8452D9D24AE00747A70 /* DateInputStackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9CBB8442D9D24AE00747A70 /* DateInputStackView.swift */; };
@@ -111,6 +112,7 @@
 		C9AE73092DC354B400F1C5EE /* TodoListCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoListCoordinator.swift; sourceTree = "<group>"; };
 		C9AE730B2DC354CD00F1C5EE /* CoordinatorProcotocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoordinatorProcotocol.swift; sourceTree = "<group>"; };
 		C9AE730D2DC371E300F1C5EE /* EditableTodoCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditableTodoCoordinator.swift; sourceTree = "<group>"; };
+		C9AE730F2DC3869A00F1C5EE /* Protocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Protocol.swift; sourceTree = "<group>"; };
 		C9AFC9C72DACDD8C0083D50B /* TodoCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoCell.swift; sourceTree = "<group>"; };
 		C9CBB8422D9D097A00747A70 /* TextInputStackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextInputStackView.swift; sourceTree = "<group>"; };
 		C9CBB8442D9D24AE00747A70 /* DateInputStackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateInputStackView.swift; sourceTree = "<group>"; };
@@ -197,6 +199,7 @@
 				04457ED028A6033B00AF2EBB /* AppDelegate.swift */,
 				04457ED228A6033B00AF2EBB /* SceneDelegate.swift */,
 				04457ED428A6033B00AF2EBB /* LaunchViewController.swift */,
+				C9AE730F2DC3869A00F1C5EE /* Protocol.swift */,
 				04457ED928A6033E00AF2EBB /* Assets.xcassets */,
 				04457EDE28A6033E00AF2EBB /* Info.plist */,
 				C90E48532D6D537C00FA6A81 /* NetworkManager.swift */,
@@ -575,6 +578,7 @@
 				C97BA7392D91486800C43CB9 /* EditableTodoVC.swift in Sources */,
 				C9E4A8AD28EAF24D0002FA8F /* ViewModelProtocol.swift in Sources */,
 				C9AFC9C82DACDD8C0083D50B /* TodoCell.swift in Sources */,
+				C9AE73102DC3869A00F1C5EE /* Protocol.swift in Sources */,
 				C9083E9828E07AC6006DEF47 /* TodoListVC.swift in Sources */,
 				C9083E9B28E08304006DEF47 /* Constant.swift in Sources */,
 				C9E538312DA5178B00D529D8 /* AppDIContainer.swift in Sources */,

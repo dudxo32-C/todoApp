@@ -10,7 +10,7 @@ import RxCocoa
 import RxRelay
 import RxSwift
 
-class EditableTodoVM: ViewModelProtocol {
+extension EditableTodoVM: ViewModelProtocol {
     struct Input {
         let titleRelay: BehaviorRelay<String>
         let dateRelay: BehaviorRelay<Date?>
@@ -23,7 +23,9 @@ class EditableTodoVM: ViewModelProtocol {
         let writeTodoResult: Driver<Result<TodoModelProtocol, Error>>
         let isLoading: Driver<Bool>
     }
+}
 
+class EditableTodoVM {
     let input: Input
     let output: Output
 

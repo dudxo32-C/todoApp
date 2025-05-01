@@ -12,6 +12,14 @@ import SnapKit
 import Then
 import UIKit
 
+extension EditableTodoVC: HasRxIO {
+    typealias Input = Empty
+    
+    struct Output {
+        let writtenTodo = PublishSubject<TodoModelProtocol>()
+    }
+}
+
 class EditableTodoVC: UIViewController {
     // MARK: UI Components
     fileprivate let textInputStackView: TextInputStackView
@@ -26,12 +34,9 @@ class EditableTodoVC: UIViewController {
 
     // MARK: RX
     private let isDatePickerVisible = BehaviorRelay(value: false)
-    private let disposeBag = DisposeBag()
+    let disposeBag = DisposeBag()
     private let loadingIndicator = LoadingIndicator()
     
-    struct Output {
-        let writtenTodo = PublishSubject<TodoModelProtocol>()
-    }
     let output = Output()
 
     // MARK: Snap

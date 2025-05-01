@@ -16,6 +16,18 @@ import UIKit
 
 private let reuseIdentifier = "CustomCell"
 
+extension TodoListVC: HasRxIO {
+    struct Input {
+        let presentedCreateVC = PublishRelay<CreateTodoVC>()
+        let presentedEditVC = PublishRelay<EditTodoVC>()
+    }
+
+    struct Output {
+        let presentCreateVC: Driver<Void>
+        let presentEditVC: Driver<TodoModelProtocol>
+    }
+}
+
 class TodoListVC: UIViewController {
     private let tableView = UITableView().then {
         $0.register(TodoCell.self, forCellReuseIdentifier: reuseIdentifier)
@@ -64,16 +76,6 @@ class TodoListVC: UIViewController {
     let initFilter: TodoFilterType
 
     // MARK: - RX
-    struct Input {
-        let presentedCreateVC = PublishRelay<CreateTodoVC>()
-        let presentedEditVC = PublishRelay<EditTodoVC>()
-    }
-
-    struct Output {
-        let presentCreateVC: Driver<Void>
-        let presentEditVC: Driver<TodoModelProtocol>
-    }
-
     let input = Input()
     let output: Output
 

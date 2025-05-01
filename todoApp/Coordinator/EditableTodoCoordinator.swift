@@ -9,6 +9,15 @@ import Foundation
 import RxSwift
 import UIKit
 
+extension EditableTodoCoordinator: HasRxIO {
+    typealias Input = Empty
+    
+    struct Output {
+        let presentedCreateVC = PublishSubject<CreateTodoVC>()
+        let presentedEditVC = PublishSubject<EditTodoVC>()
+    }
+}
+
 class EditableTodoCoordinator: CoordinatorProcotcol {
     enum Mode {
         case create
@@ -18,11 +27,6 @@ class EditableTodoCoordinator: CoordinatorProcotcol {
     let navigationController: UINavigationController
     let editableVC: EditableTodoVC
 
-    struct Output {
-        let presentedCreateVC = PublishSubject<CreateTodoVC>()
-        let presentedEditVC = PublishSubject<EditTodoVC>()
-    }
-    
     let output = Output()
     let disposeBag = DisposeBag()
 
