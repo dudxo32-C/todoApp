@@ -12,6 +12,14 @@ import SnapKit
 import Then
 import UIKit
 
+extension EditableTodoVC: HasRxIO {
+    typealias Input = Empty
+    
+    struct Output {
+        let writtenTodo = PublishSubject<TodoModelProtocol>()
+    }
+}
+
 class EditableTodoVC: UIViewController {
     // MARK: UI Components
     fileprivate let textInputStackView: TextInputStackView
@@ -26,9 +34,10 @@ class EditableTodoVC: UIViewController {
 
     // MARK: RX
     private let isDatePickerVisible = BehaviorRelay(value: false)
-    private let disposeBag = DisposeBag()
+    let disposeBag = DisposeBag()
     private let loadingIndicator = LoadingIndicator()
-    let writtenTodo = PublishSubject<TodoModelProtocol>()
+    
+    let output = Output()
 
     // MARK: Snap
     private var contentHeightContraint: Constraint?  // 높이 제약 저장
@@ -77,17 +86,28 @@ class EditableTodoVC: UIViewController {
             .disposed(by: self.disposeBag)
 
         // 생성, 수정 완료후 작업
-        self.viewModel.output.writeTodoResult.drive { result in
-            switch result {
-            case .success(let todo):
+        self.viewModel.output.editedModel
+            .drive(onNext: { todo in
                 self.didFinishWriting(todo)
-
-                break
-            case .failure(let error):
-                print(error)
+            })
+            .disposed(by: disposeBag)
+            
+            
+        self.viewModel.output.editError
+            .compactMap { $0?.localizedDescription }
+            .drive { e in
+                self.rx.showRetry(
+                    message: e,
+                    retryAction: { _ in
+                        self.viewModel.input.retryTrigger.accept(.retry)
+                    },
+                    confirmAction: { _ in
+                        self.viewModel.input.retryTrigger.accept(.none)
+                    }
+                )
 
             }
-        }.disposed(by: self.disposeBag)
+            .disposed(by: disposeBag)
     }
 
     // MARK: SetUI
@@ -154,8 +174,8 @@ class CreateTodoVC: EditableTodoVC {
     }
     
     override func didFinishWriting(_ todo:TodoModelProtocol) {
-        self.writtenTodo.onNext(todo)
-        self.writtenTodo.onCompleted()
+        self.output.writtenTodo.onNext(todo)
+        self.output.writtenTodo.onCompleted()
         self.navigationController?.dismiss(animated: true)
     }
 
@@ -177,8 +197,8 @@ class EditTodoVC: EditableTodoVC {
     }
     
     override func didFinishWriting(_ todo:TodoModelProtocol) {
-        self.writtenTodo.onNext(todo)
-        self.writtenTodo.onCompleted()
+        self.output.writtenTodo.onNext(todo)
+        self.output.writtenTodo.onCompleted()
         self.navigationController?.dismiss(animated: true)
     }
 }

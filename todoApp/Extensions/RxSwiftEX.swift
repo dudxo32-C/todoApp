@@ -6,6 +6,7 @@
 //
 import Foundation
 import RxSwift
+import RxRelay
 
 private enum UnretainedError: Error {
     case failedRetaining
@@ -41,18 +42,5 @@ extension PrimitiveSequence where Trait == SingleTrait {
 
             return Disposables.create()
         }
-    }
-
-    func handleLoadingState(
-        _ changeState: @escaping (_ isLoading: Bool) -> Void
-    ) -> Single<Element> {
-        return self.do(
-            onSubscribe: {
-                changeState(true)
-            },
-            onDispose: {
-                changeState(false)
-            }
-        )
     }
 }

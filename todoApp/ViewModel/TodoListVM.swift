@@ -34,8 +34,8 @@ enum TodoFilterType: Int {
     case past = 2
     case today = 0
     case future = 1
-    
-    static var values :[TodoFilterType] {
+
+    static var values: [TodoFilterType] {
         return [.today, .future, .past]
     }
 }
@@ -46,9 +46,8 @@ enum ToDoListError: Error {
 }
 
 // MARK: - VM
-class TodoListVM: ViewModelProtocol, RetryProtocol, LoadingProtocol {
-
-    struct Input: CommonRetryInput {
+extension TodoListVM: ViewModelProtocol, RetryProtocol, LoadingProtocol {
+    struct Input: RetryInput {
         let fetchItems: PublishRelay<Void>
         let addedItem: PublishRelay<TodoModelProtocol>
         let edittedItem: PublishRelay<TodoModelProtocol>
@@ -63,9 +62,9 @@ class TodoListVM: ViewModelProtocol, RetryProtocol, LoadingProtocol {
         let items: Driver<[TodoSection]>
         let error: Driver<Error?>
     }
+}
 
-    var input: Input
-    private var _output: Output?
+class TodoListVM {
     var output: Output {
         if let cached = _output {
             return cached
@@ -76,11 +75,14 @@ class TodoListVM: ViewModelProtocol, RetryProtocol, LoadingProtocol {
         return new
     }
 
+    var input: Input
+    private var _output: Output?
+
     var disposeBag = DisposeBag()
     let repo: TodoRepo
 
     private let isfetching = BehaviorRelay(value: false)
-    private let errorRelay = BehaviorRelay<Error?>(value: nil)
+    private let errorRelay = PublishRelay<Error?>()
     private let allItems = BehaviorRelay<[TodoModel]>(value: [])
     private let cachedGroup = BehaviorRelay<TodoGroup>(value: [:])
     private let selectedFilter: BehaviorRelay<TodoFilterType>
@@ -115,7 +117,7 @@ class TodoListVM: ViewModelProtocol, RetryProtocol, LoadingProtocol {
         return Output(
             isLoading: isfetching.asDriver(),
             items: makeItemsDriver(),
-            error: errorRelay.asDriver()
+            error: errorRelay.asDriver(onErrorJustReturn: nil)
         )
     }
     // view 에서 사용할 items
@@ -209,11 +211,10 @@ class TodoListVM: ViewModelProtocol, RetryProtocol, LoadingProtocol {
     }
 
     // MARK: - handle
-    private func retryCond(error: Observable<Error>) -> Observable<Void> {
-        return error.withUnretained(self)
-            .do { (self, error) in self.errorRelay.accept(error) }
-            .map { (_, error) in error }
-            .flatMap(handelRetry)
+    
+    // 클로저에서 사용시 [weak self] 문제로 따로 떄서 사용
+    private func retryCond(_ error: Observable<Error>) -> Observable<Void> {
+        return self.handelRetry(from: error, in: self.errorRelay)
     }
 
     private func handleFetching() -> Single<[TodoModel]> {
@@ -266,10 +267,10 @@ class TodoListVM: ViewModelProtocol, RetryProtocol, LoadingProtocol {
                 return try await retainedObj.repo.fetchTodoList()
                     .map { $0.asTodoModel }
             }
-            .handleLoadingState { isLoading in
-                retainedObj.isfetching.accept(isLoading)
-            }
+
         }
+        .handleLoadingState(to: self.isfetching)
+
     }
 
     private func deleteTodo(todo: TodoModel) -> Single<TodoModel> {
