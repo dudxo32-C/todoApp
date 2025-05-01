@@ -119,7 +119,7 @@ class TodoListVC: UIViewController {
             .drive(loadingIndicator.rx.isAnimating)
             .disposed(by: disposeBag)
     }
-    
+
     private func bindErrorAlert() {
         viewModel.output.error
             .compactMap { $0?.localizedDescription }
@@ -198,7 +198,7 @@ class TodoListVC: UIViewController {
     // MARK: -
     // TODO: Coordinator 패턴 적용하기
     @objc private func newTodoTap() {
-        let newVC = EditableTodoDIContainer().makeCreateTodoVC(.mock)
+        let newVC = EditableTodoDIContainer().makeCreateTodoVC()
         let modalNavi = UINavigationController(rootViewController: newVC)
         self.navigationController?.present(modalNavi, animated: true)
 
@@ -208,8 +208,7 @@ class TodoListVC: UIViewController {
     }
 
     private func goEditScreen(_ todo: TodoModelProtocol) {
-        let newVC = EditableTodoDIContainer().makeEditTodoVC(
-            todoModel: todo, .mock)
+        let newVC = EditableTodoDIContainer().makeEditTodoVC(todoModel: todo)
         let modalNavi = UINavigationController(rootViewController: newVC)
         self.navigationController?.present(modalNavi, animated: true)
 
@@ -224,7 +223,7 @@ extension TodoListVC: UITableViewDelegate {
         _ tableView: UITableView,
         trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath
     )
-        -> UISwipeActionsConfiguration?
+    -> UISwipeActionsConfiguration?
     {
 
         let deleteAction = UIContextualAction(style: .destructive, title: nil) {
@@ -266,10 +265,12 @@ extension Reactive where Base: UIViewController {
             title: I18N.serverError, message: message, preferredStyle: .alert)
 
         alert.addAction(
-            UIAlertAction(title: I18N.confirm, style: .cancel, handler: confirmAction)
+            UIAlertAction(
+                title: I18N.confirm, style: .cancel, handler: confirmAction)
         )
         alert.addAction(
-            UIAlertAction(title: I18N.retry, style: .default, handler: retryAction)
+            UIAlertAction(
+                title: I18N.retry, style: .default, handler: retryAction)
         )
 
         base.present(alert, animated: true)
