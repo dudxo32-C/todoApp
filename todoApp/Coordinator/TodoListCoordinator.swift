@@ -27,48 +27,45 @@ final class TodoListCoordinator: CoordinatorProcotcol {
     func start() {
         navigationController.viewControllers = [todoListVC]
 
-        bind()
-    }
-
-    func bind() {
         bindPresentCreateVC()
         bindPresentEditVC()
     }
 
     private func bindPresentCreateVC() {
-        todoListVC.output.presentCreateVC
-            .drive(onNext: { _ in
-                let newVC = EditableTodoDIContainer().makeCreateTodoVC()
-                let modalNavi = UINavigationController(
-                    rootViewController: newVC)
+        func presentCreateVC() {
+            let coord = EditableTodoCoordinator(
+                self.navigationController,
+                diContainer: EditableTodoDIContainer(),
+                mode: .create
+            )
+            coord.start()
 
-                self.navigationController.present(modalNavi, animated: true) {
-                    self.todoListVC.input
-                        .didFinishPresentCreateVC
-                        .accept(newVC)
-                }
-            })
+            coord.output.presentedCreateVC
+                .bind(to: self.todoListVC.input.presentedCreateVC)
+                .disposed(by: self.disposeBag)
+        }
+
+        todoListVC.output.presentCreateVC
+            .drive(onNext: presentCreateVC)
             .disposed(by: disposeBag)
     }
 
     private func bindPresentEditVC() {
+        func presentEditVC(_ todo: TodoModelProtocol) {
+            let coord = EditableTodoCoordinator(
+                self.navigationController,
+                diContainer: EditableTodoDIContainer(),
+                mode: .edit(todo: todo)
+            )
+            coord.start()
 
+            coord.output.presentedEditVC
+                .bind(to: self.todoListVC.input.presentedEditVC)
+                .disposed(by: self.disposeBag)
+        }
+        
         todoListVC.output.presentEditVC
-            .drive(onNext: { todo in
-                let newVC = EditableTodoDIContainer().makeEditTodoVC(
-                    todoModel: todo
-                )
-                let modalNavi = UINavigationController(
-                    rootViewController: newVC
-                )
-
-                self.navigationController.present(modalNavi, animated: true) {
-                    self.todoListVC.input
-                        .didFinishPresentEditVC
-                        .accept(newVC)
-                }
-
-            })
+            .drive(onNext: presentEditVC)
             .disposed(by: disposeBag)
     }
 }

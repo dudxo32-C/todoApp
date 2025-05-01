@@ -28,7 +28,11 @@ class EditableTodoVC: UIViewController {
     private let isDatePickerVisible = BehaviorRelay(value: false)
     private let disposeBag = DisposeBag()
     private let loadingIndicator = LoadingIndicator()
-    let writtenTodo = PublishSubject<TodoModelProtocol>()
+    
+    struct Output {
+        let writtenTodo = PublishSubject<TodoModelProtocol>()
+    }
+    let output = Output()
 
     // MARK: Snap
     private var contentHeightContraint: Constraint?  // 높이 제약 저장
@@ -154,8 +158,8 @@ class CreateTodoVC: EditableTodoVC {
     }
     
     override func didFinishWriting(_ todo:TodoModelProtocol) {
-        self.writtenTodo.onNext(todo)
-        self.writtenTodo.onCompleted()
+        self.output.writtenTodo.onNext(todo)
+        self.output.writtenTodo.onCompleted()
         self.navigationController?.dismiss(animated: true)
     }
 
@@ -177,8 +181,8 @@ class EditTodoVC: EditableTodoVC {
     }
     
     override func didFinishWriting(_ todo:TodoModelProtocol) {
-        self.writtenTodo.onNext(todo)
-        self.writtenTodo.onCompleted()
+        self.output.writtenTodo.onNext(todo)
+        self.output.writtenTodo.onCompleted()
         self.navigationController?.dismiss(animated: true)
     }
 }

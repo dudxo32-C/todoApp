@@ -65,8 +65,8 @@ class TodoListVC: UIViewController {
 
     // MARK: - RX
     struct Input {
-        let didFinishPresentCreateVC = PublishRelay<CreateTodoVC>()
-        let didFinishPresentEditVC = PublishRelay<EditTodoVC>()
+        let presentedCreateVC = PublishRelay<CreateTodoVC>()
+        let presentedEditVC = PublishRelay<EditTodoVC>()
     }
 
     struct Output {
@@ -227,8 +227,8 @@ class TodoListVC: UIViewController {
     }
 
     private func bindFinishPresentCreateVC() {
-        input.didFinishPresentCreateVC
-            .flatMap { vc in vc.writtenTodo }
+        input.presentedCreateVC
+            .flatMap { vc in vc.output.writtenTodo }
             .withUnretained(self)
             .bind { (self, todo) in
                 self.viewModel.input.addedItem.accept(todo)
@@ -244,8 +244,8 @@ class TodoListVC: UIViewController {
     }
 
     private func bindFinishPresentEditVC() {
-        input.didFinishPresentEditVC
-            .flatMap { vc in vc.writtenTodo }
+        input.presentedEditVC
+            .flatMap { vc in vc.output.writtenTodo }
             .withUnretained(self)
             .bind { (self, todo) in
                 self.viewModel.input.edittedItem.accept(todo)
