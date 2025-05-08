@@ -50,9 +50,12 @@
 		C9AE73102DC3869A00F1C5EE /* Protocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9AE730F2DC3869A00F1C5EE /* Protocol.swift */; };
 		C9AFC9C82DACDD8C0083D50B /* TodoCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9AFC9C72DACDD8C0083D50B /* TodoCell.swift */; };
 		C9BC81B52DCC7FF30094CCDC /* fetch.json in Resources */ = {isa = PBXBuildFile; fileRef = C9BC81B42DCC7FF30094CCDC /* fetch.json */; };
+		C9BC81BE2DCC89540094CCDC /* TodoRepo.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9BC81BD2DCC89540094CCDC /* TodoRepo.swift */; };
+		C9BC81C02DCC89E40094CCDC /* TodoLocalDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9BC81BF2DCC89E40094CCDC /* TodoLocalDataSource.swift */; };
+		C9BC81C22DCC89F70094CCDC /* TodoRemoteDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9BC81C12DCC89F70094CCDC /* TodoRemoteDataSource.swift */; };
+		C9BC81C42DCC8A170094CCDC /* TodoDataSourceProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9BC81C32DCC8A170094CCDC /* TodoDataSourceProvider.swift */; };
 		C9CBB8432D9D097A00747A70 /* TextInputStackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9CBB8422D9D097A00747A70 /* TextInputStackView.swift */; };
 		C9CBB8452D9D24AE00747A70 /* DateInputStackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9CBB8442D9D24AE00747A70 /* DateInputStackView.swift */; };
-		C9DB5FB42D7EAF0B00B72B5D /* TodoRepo.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9DB5FB32D7EAF0B00B72B5D /* TodoRepo.swift */; };
 		C9DB5FB92D801F7600B72B5D /* TodoRealm.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9DB5FB82D801F7600B72B5D /* TodoRealm.swift */; };
 		C9DB5FC52D80258200B72B5D /* Realm in Frameworks */ = {isa = PBXBuildFile; productRef = C9DB5FC42D80258200B72B5D /* Realm */; };
 		C9DB5FC72D80258200B72B5D /* RealmSwift in Frameworks */ = {isa = PBXBuildFile; productRef = C9DB5FC62D80258200B72B5D /* RealmSwift */; };
@@ -116,9 +119,12 @@
 		C9AE730F2DC3869A00F1C5EE /* Protocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Protocol.swift; sourceTree = "<group>"; };
 		C9AFC9C72DACDD8C0083D50B /* TodoCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoCell.swift; sourceTree = "<group>"; };
 		C9BC81B42DCC7FF30094CCDC /* fetch.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = fetch.json; sourceTree = "<group>"; };
+		C9BC81BD2DCC89540094CCDC /* TodoRepo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoRepo.swift; sourceTree = "<group>"; };
+		C9BC81BF2DCC89E40094CCDC /* TodoLocalDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoLocalDataSource.swift; sourceTree = "<group>"; };
+		C9BC81C12DCC89F70094CCDC /* TodoRemoteDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoRemoteDataSource.swift; sourceTree = "<group>"; };
+		C9BC81C32DCC8A170094CCDC /* TodoDataSourceProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoDataSourceProvider.swift; sourceTree = "<group>"; };
 		C9CBB8422D9D097A00747A70 /* TextInputStackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextInputStackView.swift; sourceTree = "<group>"; };
 		C9CBB8442D9D24AE00747A70 /* DateInputStackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateInputStackView.swift; sourceTree = "<group>"; };
-		C9DB5FB32D7EAF0B00B72B5D /* TodoRepo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoRepo.swift; sourceTree = "<group>"; };
 		C9DB5FB82D801F7600B72B5D /* TodoRealm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoRealm.swift; sourceTree = "<group>"; };
 		C9E4A8AC28EAF24D0002FA8F /* ViewModelProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewModelProtocol.swift; sourceTree = "<group>"; };
 		C9E5382E2DA50D9F00D529D8 /* EditableTodoDIContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditableTodoDIContainer.swift; sourceTree = "<group>"; };
@@ -277,7 +283,6 @@
 		C92513592D782C86004E2D5B /* Model */ = {
 			isa = PBXGroup;
 			children = (
-				C9DB5FB72D801F4A00B72B5D /* Realm */,
 				C92513652D783997004E2D5B /* TodoModel.swift */,
 			);
 			path = Model;
@@ -287,6 +292,8 @@
 			isa = PBXGroup;
 			children = (
 				C92513602D78303E004E2D5B /* Repository */,
+				C9BC81BB2DCC892F0094CCDC /* DataSource */,
+				C9BC81BA2DCC886D0094CCDC /* RelamModel */,
 				C925135B2D782C93004E2D5B /* API */,
 			);
 			path = Data;
@@ -312,18 +319,9 @@
 		C92513602D78303E004E2D5B /* Repository */ = {
 			isa = PBXGroup;
 			children = (
-				C9DB5FB62D801ABF00B72B5D /* Local */,
-				C92513612D78304A004E2D5B /* Remote */,
+				C9BC81BD2DCC89540094CCDC /* TodoRepo.swift */,
 			);
 			path = Repository;
-			sourceTree = "<group>";
-		};
-		C92513612D78304A004E2D5B /* Remote */ = {
-			isa = PBXGroup;
-			children = (
-				C9DB5FB32D7EAF0B00B72B5D /* TodoRepo.swift */,
-			);
-			path = Remote;
 			sourceTree = "<group>";
 		};
 		C9AE73082DC3549E00F1C5EE /* Coordinator */ = {
@@ -360,6 +358,24 @@
 			path = Todo;
 			sourceTree = "<group>";
 		};
+		C9BC81BA2DCC886D0094CCDC /* RelamModel */ = {
+			isa = PBXGroup;
+			children = (
+				C9DB5FB82D801F7600B72B5D /* TodoRealm.swift */,
+			);
+			path = RelamModel;
+			sourceTree = "<group>";
+		};
+		C9BC81BB2DCC892F0094CCDC /* DataSource */ = {
+			isa = PBXGroup;
+			children = (
+				C9BC81BF2DCC89E40094CCDC /* TodoLocalDataSource.swift */,
+				C9BC81C12DCC89F70094CCDC /* TodoRemoteDataSource.swift */,
+				C9BC81C32DCC8A170094CCDC /* TodoDataSourceProvider.swift */,
+			);
+			path = DataSource;
+			sourceTree = "<group>";
+		};
 		C9CBB8412D9D096100747A70 /* Widget */ = {
 			isa = PBXGroup;
 			children = (
@@ -370,21 +386,6 @@
 				C9AFC9C72DACDD8C0083D50B /* TodoCell.swift */,
 			);
 			path = Widget;
-			sourceTree = "<group>";
-		};
-		C9DB5FB62D801ABF00B72B5D /* Local */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Local;
-			sourceTree = "<group>";
-		};
-		C9DB5FB72D801F4A00B72B5D /* Realm */ = {
-			isa = PBXGroup;
-			children = (
-				C9DB5FB82D801F7600B72B5D /* TodoRealm.swift */,
-			);
-			path = Realm;
 			sourceTree = "<group>";
 		};
 		C9E5382D2DA50B6500D529D8 /* DI */ = {
@@ -595,10 +596,13 @@
 				C9AE730E2DC371E300F1C5EE /* EditableTodoCoordinator.swift in Sources */,
 				C9AE730C2DC354CD00F1C5EE /* CoordinatorProcotocol.swift in Sources */,
 				C9DB5FB92D801F7600B72B5D /* TodoRealm.swift in Sources */,
+				C9BC81C42DCC8A170094CCDC /* TodoDataSourceProvider.swift in Sources */,
 				04457ED128A6033B00AF2EBB /* AppDelegate.swift in Sources */,
+				C9BC81C22DCC89F70094CCDC /* TodoRemoteDataSource.swift in Sources */,
 				C9AE73072DC334EA00F1C5EE /* TodoRepositoryAssembly.swift in Sources */,
 				04457ED328A6033B00AF2EBB /* SceneDelegate.swift in Sources */,
 				C90E48542D6D537C00FA6A81 /* NetworkManager.swift in Sources */,
+				C9BC81C02DCC89E40094CCDC /* TodoLocalDataSource.swift in Sources */,
 				C9CBB8452D9D24AE00747A70 /* DateInputStackView.swift in Sources */,
 				C9287B682D6EED170025A8C0 /* TodoListVM.swift in Sources */,
 				C95696872D91310800E4D8B1 /* EditableTodoVM.swift in Sources */,
@@ -607,11 +611,11 @@
 				C9E4A8AD28EAF24D0002FA8F /* ViewModelProtocol.swift in Sources */,
 				C9AFC9C82DACDD8C0083D50B /* TodoCell.swift in Sources */,
 				C9AE73102DC3869A00F1C5EE /* Protocol.swift in Sources */,
+				C9BC81BE2DCC89540094CCDC /* TodoRepo.swift in Sources */,
 				C9083E9828E07AC6006DEF47 /* TodoListVC.swift in Sources */,
 				C9083E9B28E08304006DEF47 /* Constant.swift in Sources */,
 				C9E538312DA5178B00D529D8 /* AppDIContainer.swift in Sources */,
 				C95B652D2D9E828900F05436 /* StringEX.swift in Sources */,
-				C9DB5FB42D7EAF0B00B72B5D /* TodoRepo.swift in Sources */,
 				C99048382998A5A6004AD091 /* UIButtonEX.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
