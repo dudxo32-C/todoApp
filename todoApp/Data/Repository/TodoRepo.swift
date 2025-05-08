@@ -53,10 +53,10 @@ class TodoRepo {
     /// 할일 목록 삭제하기
     /// - Throws: ``NetworkError``, ``TodoError``
     /// - Returns: Todo 모델의 `id`
-    func deleteTodo(_ id: String) async throws -> TodoModelProtocol {
+    func deleteTodo(_ id: String) async throws -> String {
         let response = try await dataSource.deleteTodo(id: id)
 
-        return response
+        return response.id
     }
 
     /// 할일 목록 수정하기

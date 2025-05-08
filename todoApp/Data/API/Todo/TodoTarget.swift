@@ -8,23 +8,17 @@
 import Foundation
 import Moya
 
-final class SampleDataLoader {
-    static func loadJSON(named fileName: String) -> Data {
-        guard
-            let url = Bundle.main.url(
-                forResource: fileName, withExtension: "json")
-        else {
-            fatalError("Missing file: \(fileName).json")
-        }
-        return try! Data(contentsOf: url)
-    }
-}
-
 enum TodoAPI {
     case fetchList
-    case write(todo: TodoModelProtocol)
+    case write(title:String, contents:String, date:Date)
     case delete(id: String)
-    case update(todo: TodoModelProtocol)
+    case update(
+        id:String,
+        title:String,
+        contents:String,
+        isDone:Bool,
+        date:Date
+    )
 
 }
 
@@ -33,11 +27,11 @@ extension TodoAPI: TargetType {
         switch self {
         case .fetchList:
             return .get
-        case .write(let todo):
+        case .write:
             return .post
-        case .delete(let id):
+        case .delete:
             return .delete
-        case .update(let todo):
+        case .update:
             return .put
         }
     }
@@ -46,14 +40,12 @@ extension TodoAPI: TargetType {
         switch self {
         case .fetchList:
             return .requestPlain
-        case .write(let todo):
+        case .write(let title, let contents, let date):
             return .requestParameters(
                 parameters: [
-                    "id": todo.id,
-                    "title": todo.title,
-                    "completed": todo.isDone,
-                    "date": todo.date,
-                    "contents": todo.contents,
+                    "title": title,
+                    "date": date,
+                    "contents": contents,
                 ], encoding: URLEncoding.httpBody
             )
         case .delete(let id):
@@ -61,14 +53,14 @@ extension TodoAPI: TargetType {
                 parameters: ["id": id],
                 encoding: URLEncoding.queryString
             )
-        case .update(let todo):
+        case .update(let id, let title,let contents,let isDone,let date):
             return .requestParameters(
                 parameters: [
-                    "id": todo.id,
-                    "title": todo.title,
-                    "completed": todo.isDone,
-                    "date": todo.date,
-                    "contents": todo.contents,
+                    "id": id,
+                    "title": title,
+                    "completed": isDone,
+                    "date": date,
+                    "contents": contents,
                 ], encoding: URLEncoding.queryString
             )
         }
@@ -86,11 +78,11 @@ extension TodoAPI: TargetType {
         switch self {
         case .fetchList:
             return "todos"
-        case .write(let todo):
+        case .write:
             return "write"
-        case .delete(let id):
+        case .delete:
             return "delete"
-        case .update(let todo):
+        case .update:
             return "update"
         }
     }
@@ -99,12 +91,29 @@ extension TodoAPI: TargetType {
         switch self {
         case .fetchList:
             return SampleDataLoader.loadJSON(named: "fetch")
-        case .write(let todo):
-            return try! JSONSerialization.data(withJSONObject: todo)
+        case .write(let title, let contents, let date):
+            let data = [
+                "id":"smaple ID",
+                "title":title,
+                "isDone":false,
+                "date":date.description,
+                "contents":contents
+            ] as [String : Any]
+            
+            return try! JSONSerialization.data(withJSONObject: data)
         case .delete(let id):
             return try! JSONSerialization.data(withJSONObject: ["id": id])
-        case .update(let todo):
-            return try! JSONSerialization.data(withJSONObject: todo)
+            
+        case .update(let id, let title,let contents,let isDone,let date):
+            let data = [
+                "id":id,
+                "title":title,
+                "isDone":isDone,
+                "date":date.description,
+                "contents":contents
+            ] as [String : Any]
+            
+            return try! JSONSerialization.data(withJSONObject: data)
         }
     }
 }

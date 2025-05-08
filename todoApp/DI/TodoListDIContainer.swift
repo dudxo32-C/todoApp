@@ -8,6 +8,7 @@
 import Foundation
 import Swinject
 import UIKit
+import Moya
 
 class TodoListDIContainer {
     private let container: Container
@@ -26,16 +27,37 @@ class TodoListDIContainer {
     }
 
     func makeTodoListVC(
-        initFilter: TodoFilterType, env: DataEnvironment = .mock
+        initFilter: TodoFilterType, env: DataEnvironment = .local
     ) -> TodoListVC {
-        let vm = self.container.resolveOrFail(
+  
+        let dataSource:TodoDataSourceProvider = {
+            switch env {
+            case .local:
+                return container.resolveOrFail(TodoDataSourceProvider.self)
+            
+            case .stub, .production:
+                let provider = container.resolveOrFail(
+                    MoyaProvider<TodoAPI>.self, name: env.rawValue
+                )
+
+                return container
+                    .resolveOrFail(
+                        TodoDataSourceProvider.self,
+                        argument: provider
+                    )
+            }
+        }()
+
+        let repo = container.resolveOrFail(TodoRepo.self, argument: dataSource)
+        
+        let viewModel = self.container.resolveOrFail(
             TodoListVM.self,
-            arguments: initFilter, env
+            arguments: initFilter, repo
         )
 
         return self.container.resolveOrFail(
             TodoListVC.self,
-            arguments: initFilter, vm
+            arguments: initFilter, viewModel
         )
     }
 }
@@ -44,9 +66,8 @@ final class TodoListAssembly: Assembly {
     func assemble(container: Container) {
         // vm 등록
         container.register(TodoListVM.self) {
-            (resolver, initFilter: TodoFilterType, env: DataEnvironment) in
+            (resolver, initFilter: TodoFilterType, repo: TodoRepo) in
 
-            let repo = resolver.resolveOrFail(TodoRepo.self, argument: env)
             return TodoListVM(repo, initFilter: initFilter)
         }
 

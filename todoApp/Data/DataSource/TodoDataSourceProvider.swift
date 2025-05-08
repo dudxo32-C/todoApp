@@ -10,12 +10,12 @@ import Foundation
 enum TodoError: Error { case notFound }
 
 protocol TodoDataSourceProvider {
-    func fetchTodoList() async throws -> [TodoResponseDTO]
+    func fetchTodoList() async throws -> [TodoResponseResponse]
 
     func writeTodo(title: String, contents: String, date: Date) async throws
-        -> TodoResponseDTO
+        -> TodoResponseResponse
 
-    func deleteTodo(id: String) async throws -> TodoModelProtocol
+    func deleteTodo(id: String) async throws -> TodoDeleteResponse
 
-    func updateTodo(todo: TodoModelProtocol) async throws -> TodoResponseDTO
+    func updateTodo(todo: TodoModelProtocol) async throws -> TodoResponseResponse
 }

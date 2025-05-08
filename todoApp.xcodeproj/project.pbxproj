@@ -54,6 +54,7 @@
 		C9BC81C02DCC89E40094CCDC /* TodoLocalDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9BC81BF2DCC89E40094CCDC /* TodoLocalDataSource.swift */; };
 		C9BC81C22DCC89F70094CCDC /* TodoRemoteDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9BC81C12DCC89F70094CCDC /* TodoRemoteDataSource.swift */; };
 		C9BC81C42DCC8A170094CCDC /* TodoDataSourceProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9BC81C32DCC8A170094CCDC /* TodoDataSourceProvider.swift */; };
+		C9BC81C62DCCAA3F0094CCDC /* StubDataLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9BC81C52DCCAA3F0094CCDC /* StubDataLoader.swift */; };
 		C9CBB8432D9D097A00747A70 /* TextInputStackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9CBB8422D9D097A00747A70 /* TextInputStackView.swift */; };
 		C9CBB8452D9D24AE00747A70 /* DateInputStackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9CBB8442D9D24AE00747A70 /* DateInputStackView.swift */; };
 		C9DB5FB92D801F7600B72B5D /* TodoRealm.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9DB5FB82D801F7600B72B5D /* TodoRealm.swift */; };
@@ -123,6 +124,7 @@
 		C9BC81BF2DCC89E40094CCDC /* TodoLocalDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoLocalDataSource.swift; sourceTree = "<group>"; };
 		C9BC81C12DCC89F70094CCDC /* TodoRemoteDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoRemoteDataSource.swift; sourceTree = "<group>"; };
 		C9BC81C32DCC8A170094CCDC /* TodoDataSourceProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoDataSourceProvider.swift; sourceTree = "<group>"; };
+		C9BC81C52DCCAA3F0094CCDC /* StubDataLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StubDataLoader.swift; sourceTree = "<group>"; };
 		C9CBB8422D9D097A00747A70 /* TextInputStackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextInputStackView.swift; sourceTree = "<group>"; };
 		C9CBB8442D9D24AE00747A70 /* DateInputStackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateInputStackView.swift; sourceTree = "<group>"; };
 		C9DB5FB82D801F7600B72B5D /* TodoRealm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoRealm.swift; sourceTree = "<group>"; };
@@ -302,6 +304,7 @@
 		C925135B2D782C93004E2D5B /* API */ = {
 			isa = PBXGroup;
 			children = (
+				C9BC81C52DCCAA3F0094CCDC /* StubDataLoader.swift */,
 				C925135F2D783010004E2D5B /* Todo */,
 			);
 			path = API;
@@ -617,6 +620,7 @@
 				C9E538312DA5178B00D529D8 /* AppDIContainer.swift in Sources */,
 				C95B652D2D9E828900F05436 /* StringEX.swift in Sources */,
 				C99048382998A5A6004AD091 /* UIButtonEX.swift in Sources */,
+				C9BC81C62DCCAA3F0094CCDC /* StubDataLoader.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

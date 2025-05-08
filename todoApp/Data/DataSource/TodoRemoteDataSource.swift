@@ -9,20 +9,20 @@ import Foundation
 import Moya
 
 class TodoRemoteDataSource: TodoDataSourceProvider {
-    fileprivate var networkManager: NetworkManager<TodoAPI>
+    fileprivate var provider: MoyaProvider<TodoAPI>
 
-    init(networkManager: NetworkManager<TodoAPI> = .init(environment: .mock)) {
-        self.networkManager = networkManager
+    init(_ provider: MoyaProvider<TodoAPI>) {
+        self.provider = provider
     }
 
-    func fetchTodoList() async throws -> [TodoResponseDTO] {
-        let response = await MoyaProvider<TodoAPI>().request(.fetchList)
-        //        self.networkManager.request(.fetchList)
+    func fetchTodoList() async throws -> [TodoResponseResponse] {
+        let response = await provider.request(.fetchList)
+        
 
         switch response {
         case .success(let success):
             do {
-                let data = try success.toDecoded(type: [TodoResponseDTO].self)
+                let data = try success.toDecoded(type: [TodoResponseResponse].self)
                 return data
             } catch {
                 throw error
@@ -33,23 +33,51 @@ class TodoRemoteDataSource: TodoDataSourceProvider {
     }
 
     func writeTodo(title: String, contents: String, date: Date) async throws
-        -> TodoResponseDTO
+        -> TodoResponseResponse
     {
-        preconditionFailure(
-            "Subclasses must implement writeTodo(title:contents:date:)"
-        )
+        let response = await provider.request(.write(title: title, contents: contents, date: date))
+        
+        switch response {
+        case .success(let success):
+            let data = try success.toDecoded(type: TodoResponseResponse.self)
+            return data
+        case .failure(let failure):
+            throw failure
+        }
     }
 
-    func deleteTodo(id: String) async throws -> TodoModelProtocol {
-        preconditionFailure(
-            "Subclasses must implement deleteTodo(id:)"
-        )
+    func deleteTodo(id: String) async throws -> TodoDeleteResponse {
+        let response = await provider.request(.delete(id: id))
+        
+        switch response {
+        case .success(let success):
+            let data = try success.toDecoded(type: TodoDeleteResponse.self)
+            return data
+            
+        case .failure(let failure):
+            throw failure
+        }
     }
 
-    func updateTodo(todo: TodoModelProtocol) async throws -> TodoResponseDTO {
-        preconditionFailure(
-            "Subclasses must implement updateTodo(todo:)"
+    func updateTodo(todo: TodoModelProtocol) async throws -> TodoResponseResponse {
+        let response = await provider.request(
+            .update(
+                id: todo.id,
+                title: todo.title,
+                contents: todo.contents,
+                isDone: todo.isDone,
+                date: todo.date
+            )
         )
+        
+        switch response {
+        case .success(let success):
+            let data = try success.toDecoded(type: TodoResponseResponse.self)
+            return data
+            
+        case .failure(let failure):
+            throw failure
+        }
     }
 
 }

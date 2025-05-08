@@ -273,11 +273,11 @@ class TodoListVM {
 
     }
 
-    private func deleteTodo(todo: TodoModel) -> Single<TodoModel> {
+    private func deleteTodo(todo: TodoModel) -> Single<String> {
         return .deferredWithUnretained(self) { retainedObj in
             return .async {
                 let response = try await retainedObj.repo.deleteTodo(todo.id)
-                return response.asTodoModel
+                return response
             }
         }
     }
@@ -329,9 +329,9 @@ class TodoListVM {
         return currentAll
     }
 
-    private func deleteItemInLocal(_ removed: TodoModel) -> [TodoModel] {
+    private func deleteItemInLocal(_ removedID: String) -> [TodoModel] {
         let current = self.allItems.value
-        let removedList = current.filter { $0.id != removed.id }
+        let removedList = current.filter { $0.id != removedID }
 
         return removedList
     }
