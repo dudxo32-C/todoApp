@@ -7,7 +7,11 @@
 
 import Foundation
 
-//static struct Constant {
-    let C_margin16 = 16
-//}
+let C_margin16 = 16
 
+/// Data 환경
+enum DataEnvironment: String {
+    case stub = "stub"
+    case local = "local"
+    case production = "production"
+}

@@ -1,0 +1,20 @@
+/* 
+  Localizable.strings
+  todoApp
+
+  Created by 조영태 on 4/3/25.
+  
+*/
+
+todo = "할일";
+createTodo = "Todo 생성";
+editTodo = "Todo 수정";
+done = "완료";
+noList = "리스트가 없습니다";
+selectDate = "날짜를 선택하세요";
+today = "오늘";
+future = "미래";
+past = "과거";
+serverError = "서버에서 에러가 발생했습니다";
+confirm = "확인";
+retry = "재시도";

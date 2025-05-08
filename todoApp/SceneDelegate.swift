@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import RealmSwift
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
@@ -18,8 +19,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
         guard let windowScene = (scene as? UIWindowScene) else { return }
         
-        let mainVC = MainViewController()
-        
         window = UIWindow(frame: windowScene.coordinateSpace.bounds)
         window?.windowScene = windowScene
         window?.rootViewController = LaunchViewController() // 루트 뷰컨트롤러 생성
@@ -27,6 +26,22 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         window?.makeKeyAndVisible()
 //        mainVC.present(ViewController(), animated: false)
 
+        let config = Realm.Configuration(
+            schemaVersion: 2, //
+            migrationBlock: { migration, oldSchemaVersion in
+                if oldSchemaVersion < 2 {
+                    // 예: isDone 프로퍼티가 새로 생겼다면 초기값 세팅도 가능
+                    migration.enumerateObjects(ofType: TodoRealm.className()) { oldObject, newObject in
+                        newObject?["isDone"] = false
+                    }
+                }
+            }
+        )
+
+        Realm.Configuration.defaultConfiguration = config
+#if DEBUG
+        print("realm 위치: ", Realm.Configuration.defaultConfiguration.fileURL!)
+#endif
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {
