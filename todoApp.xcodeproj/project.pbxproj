@@ -49,6 +49,7 @@
 		C9AE730E2DC371E300F1C5EE /* EditableTodoCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9AE730D2DC371E300F1C5EE /* EditableTodoCoordinator.swift */; };
 		C9AE73102DC3869A00F1C5EE /* Protocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9AE730F2DC3869A00F1C5EE /* Protocol.swift */; };
 		C9AFC9C82DACDD8C0083D50B /* TodoCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9AFC9C72DACDD8C0083D50B /* TodoCell.swift */; };
+		C9BC81B52DCC7FF30094CCDC /* fetch.json in Resources */ = {isa = PBXBuildFile; fileRef = C9BC81B42DCC7FF30094CCDC /* fetch.json */; };
 		C9CBB8432D9D097A00747A70 /* TextInputStackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9CBB8422D9D097A00747A70 /* TextInputStackView.swift */; };
 		C9CBB8452D9D24AE00747A70 /* DateInputStackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9CBB8442D9D24AE00747A70 /* DateInputStackView.swift */; };
 		C9DB5FB42D7EAF0B00B72B5D /* TodoRepo.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9DB5FB32D7EAF0B00B72B5D /* TodoRepo.swift */; };
@@ -114,6 +115,7 @@
 		C9AE730D2DC371E300F1C5EE /* EditableTodoCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditableTodoCoordinator.swift; sourceTree = "<group>"; };
 		C9AE730F2DC3869A00F1C5EE /* Protocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Protocol.swift; sourceTree = "<group>"; };
 		C9AFC9C72DACDD8C0083D50B /* TodoCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoCell.swift; sourceTree = "<group>"; };
+		C9BC81B42DCC7FF30094CCDC /* fetch.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = fetch.json; sourceTree = "<group>"; };
 		C9CBB8422D9D097A00747A70 /* TextInputStackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextInputStackView.swift; sourceTree = "<group>"; };
 		C9CBB8442D9D24AE00747A70 /* DateInputStackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateInputStackView.swift; sourceTree = "<group>"; };
 		C9DB5FB32D7EAF0B00B72B5D /* TodoRepo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoRepo.swift; sourceTree = "<group>"; };
@@ -165,6 +167,7 @@
 		04457EC428A6033B00AF2EBB = {
 			isa = PBXGroup;
 			children = (
+				C9BC81B12DCC7FC00094CCDC /* Resources */,
 				C95B65272D9E7DC100F05436 /* Localizable.strings */,
 				04457ECF28A6033B00AF2EBB /* todoApp */,
 				04457EE628A6033F00AF2EBB /* todoAppTests */,
@@ -331,6 +334,30 @@
 				C9AE730B2DC354CD00F1C5EE /* CoordinatorProcotocol.swift */,
 			);
 			path = Coordinator;
+			sourceTree = "<group>";
+		};
+		C9BC81B12DCC7FC00094CCDC /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				C9BC81B22DCC7FCC0094CCDC /* Stub */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		C9BC81B22DCC7FCC0094CCDC /* Stub */ = {
+			isa = PBXGroup;
+			children = (
+				C9BC81B32DCC7FD20094CCDC /* Todo */,
+			);
+			path = Stub;
+			sourceTree = "<group>";
+		};
+		C9BC81B32DCC7FD20094CCDC /* Todo */ = {
+			isa = PBXGroup;
+			children = (
+				C9BC81B42DCC7FF30094CCDC /* fetch.json */,
+			);
+			path = Todo;
 			sourceTree = "<group>";
 		};
 		C9CBB8412D9D096100747A70 /* Widget */ = {
@@ -507,6 +534,7 @@
 			files = (
 				04457EDA28A6033E00AF2EBB /* Assets.xcassets in Resources */,
 				C95B65292D9E7DC100F05436 /* Localizable.strings in Resources */,
+				C9BC81B52DCC7FF30094CCDC /* fetch.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
