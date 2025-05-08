@@ -7,6 +7,7 @@
 
 import Foundation
 import Swinject
+import Moya
 
 class EditableTodoDIContainer {
     private let container: Container
@@ -25,34 +26,53 @@ class EditableTodoDIContainer {
     }
 
     private func makeRepository(_ env: DataEnvironment) -> TodoRepo {
-        return assembler.resolver.resolveOrFail(TodoRepo.self, argument: env)
+        let dataSource:TodoDataSourceProvider = {
+            switch env {
+            case .local:
+                return container.resolveOrFail(TodoDataSourceProvider.self)
+            
+            case .stub, .production:
+                let provider = container.resolveOrFail(
+                    MoyaProvider<TodoAPI>.self,
+                    name: env.rawValue
+                )
+
+                return container
+                    .resolveOrFail(
+                        TodoDataSourceProvider.self,
+                        argument: provider
+                    )
+            }
+        }()
+
+        return assembler.resolver.resolveOrFail(TodoRepo.self, argument: dataSource)
     }
 
-    func makeCreateTodoVC(_ env: DataEnvironment = .mock) -> CreateTodoVC {
+    func makeCreateTodoVC(_ env: DataEnvironment = .local) -> CreateTodoVC {
         let repo = makeRepository(env)
 
-        let vm = assembler.resolver.resolveOrFail(
+        let viewModel = assembler.resolver.resolveOrFail(
             CreateTodoVM.self,
             argument: repo
         )
 
         return assembler.resolver
-            .resolveOrFail(CreateTodoVC.self, argument: vm)
+            .resolveOrFail(CreateTodoVC.self, argument: viewModel)
     }
 
-    func makeEditTodoVC(todoModel: TodoModelProtocol, _ env: DataEnvironment = .mock)
+    func makeEditTodoVC(todoModel: TodoModelProtocol, _ env: DataEnvironment = .local)
     -> EditTodoVC
     {
         let repo = makeRepository(env)
 
-        let vm = assembler.resolver.resolveOrFail(
+        let viewModel = assembler.resolver.resolveOrFail(
             EditTodoVM.self,
             arguments: repo, todoModel
         )
 
         return assembler.resolver.resolveOrFail(
             EditTodoVC.self,
-            arguments: vm, todoModel
+            arguments: viewModel, todoModel
         )
     }
 }

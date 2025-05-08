@@ -1,31 +1,14 @@
 //
-//  TodoRepo.swift
+//  TodoLocalDataSource.swift
 //  todoApp
 //
-//  Created by 조영태 on 3/10/25.
+//  Created by 조영태 on 5/8/25.
 //
 
-import Combine
 import Foundation
-import Moya
 import RealmSwift
 
-//enum TodoError: Error { case notFound }
-
-//protocol TodoDataSourceProvider {
-//    func fetchTodoList() async throws -> [TodoResponseDTO]
-//
-//    func writeTodo(title: String, contents: String, date: Date) async throws
-//        -> TodoResponseDTO
-//
-//    func deleteTodo(id: String) async throws -> TodoModelProtocol
-//
-//    func updateTodo(todo: TodoModelProtocol) async throws -> TodoResponseDTO
-//}
-
-
-
-class MockTodoDS: TodoDS {
+class TodoLocalDataSource: TodoDataSourceProvider {
     var realm: Realm { get throws { try Realm() } }
 
     fileprivate func getData(id: String) throws -> TodoRealm {
@@ -38,14 +21,14 @@ class MockTodoDS: TodoDS {
         return target
     }
 
-    override func fetchTodoList() async throws -> [TodoResponseDTO] {
+    func fetchTodoList() async throws -> [TodoResponseResponse] {
 
         try await _Concurrency.Task.delayTwoSecond()
 
         let todoList = try Array(realm.objects(TodoRealm.self))
 
         return todoList.map {
-            TodoResponseDTO(
+            TodoResponseResponse(
                 id: $0._id,
                 title: $0.title,
                 date: $0.date,
@@ -55,8 +38,8 @@ class MockTodoDS: TodoDS {
         }
     }
 
-    override func writeTodo(title: String, contents: String, date: Date)
-        async throws -> TodoResponseDTO
+    func writeTodo(title: String, contents: String, date: Date)
+        async throws -> TodoResponseResponse
     {
         try await _Concurrency.Task.delayTwoSecond()
 
@@ -66,7 +49,7 @@ class MockTodoDS: TodoDS {
             try realm.add(newTodo)
         }
 
-        return TodoResponseDTO(
+        return TodoResponseResponse(
             id: newTodo._id,
             title: newTodo.title,
             date: newTodo.date,
@@ -75,27 +58,18 @@ class MockTodoDS: TodoDS {
         )
     }
 
-    override func deleteTodo(id: String) async throws -> TodoModelProtocol {
+    func deleteTodo(id: String) async throws -> TodoDeleteResponse {
         let target = try self.getData(id: id)
 
-        let temp = TodoModel(
-            id: target._id,
-            title: target.title,
-            date: target.date,
-            contents: target.contents,
-            isDone: target.isDone
-        )
-        
         try realm.write {
             try realm.delete(target)
         }
 
-        return temp
-
+        return TodoDeleteResponse(id: id)
     }
 
-    override func updateTodo(todo: TodoModelProtocol) async throws
-        -> TodoResponseDTO
+    func updateTodo(todo: TodoModelProtocol) async throws
+        -> TodoResponseResponse
     {
 
         let target = try self.getData(id: todo.id)
@@ -107,7 +81,7 @@ class MockTodoDS: TodoDS {
             target.isDone = todo.isDone
         }
 
-        return TodoResponseDTO(
+        return TodoResponseResponse(
             id: todo.id,
             title: todo.title,
             date: todo.date,
@@ -116,4 +90,7 @@ class MockTodoDS: TodoDS {
         )
 
     }
+
 }
+
+class StubTodoLocalDataSource: TodoLocalDataSource {}

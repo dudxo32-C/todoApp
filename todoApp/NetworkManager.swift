@@ -10,46 +10,62 @@ import Foundation
 import Moya
 
 public enum APIEnvironment {
-    case mock
+    case stub
+    case local
     case production
 }
 
 enum NetworkError : Error {
     case DecodedFailed
 }
-
-class NetworkManager<Target: TargetType>: MoyaProvider<Target> {
-    init(
-        endpointClosure: @escaping EndpointClosure = MoyaProvider<Target>
-            .defaultEndpointMapping,
-        requestClosure: @escaping RequestClosure = MoyaProvider<Target>
-            .defaultRequestMapping,
-        environment: APIEnvironment,
-        callbackQueue: DispatchQueue? = nil,
-        session: Session = MoyaProvider<Target>.defaultAlamofireSession(),
-        plugins: [PluginType] = [],
-        trackInflights: Bool = false
-    ) {
-        let stubClosure = {
-            switch environment {
-            case .mock:
-                return MoyaProvider<Target>.delayedStub(2)
-            case .production:
-                return MoyaProvider.neverStub
-            }
-        }()
-
-        super.init(
-            endpointClosure: endpointClosure,
-            requestClosure: requestClosure,
-            stubClosure: stubClosure,
-            callbackQueue: callbackQueue,
-            session: session,
-            plugins: plugins,
-            trackInflights: trackInflights
-        )
+//
+//class NetworkManager<Target: TargetType>: MoyaProvider<Target> {
+//    init(
+//        endpointClosure: @escaping EndpointClosure = MoyaProvider<Target>
+//            .defaultEndpointMapping,
+//        requestClosure: @escaping RequestClosure = MoyaProvider<Target>
+//            .defaultRequestMapping,
+//        environment: APIEnvironment,
+//        callbackQueue: DispatchQueue? = nil,
+//        session: Session = MoyaProvider<Target>.defaultAlamofireSession(),
+//        plugins: [PluginType] = [],
+//        trackInflights: Bool = false
+//    ) {
+//        let stubClosure = {
+//            switch environment {
+//            case .stub:
+//                return MoyaProvider<Target>.delayedStub(2)
+//            case .production:
+//                return MoyaProvider.neverStub
+//            }
+//        }()
+//
+//        super.init(
+//            endpointClosure: endpointClosure,
+//            requestClosure: requestClosure,
+//            stubClosure: stubClosure,
+//            callbackQueue: callbackQueue,
+//            session: session,
+//            plugins: plugins,
+//            trackInflights: trackInflights
+//        )
+//    }
+//  
+//}
+extension MoyaProvider {
+    static func makeProvider(for environment: APIEnvironment) -> MoyaProvider<Target> {
+        switch environment {
+        case .production:
+            return MoyaProvider<Target>()
+        case .stub:
+            return MoyaProvider<Target>(
+                stubClosure: MoyaProvider.immediatelyStub
+            )
+        case .local:
+            assertionFailure("local environment not supported")
+            return MoyaProvider<Target>()
+        }
     }
-  
 }
 
 extension Response {
