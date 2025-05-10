@@ -23,18 +23,18 @@ final class TodoRepositoryAssembly: Assembly {
         }.inObjectScope(.container)
         
         // remote dataSource 등록
-        container.register(TodoDataSourceProvider.self) { (_, provider:MoyaProvider<TodoAPI>) in
+        container.register(TodoDataSourceProtocol.self) { (_, provider:MoyaProvider<TodoAPI>) in
             return TodoRemoteDataSource(provider)
         }.inObjectScope(.container)
 
         // local dataSource 등록
-        container.register(TodoDataSourceProvider.self) { _ in
+        container.register(TodoDataSourceProtocol.self) { _ in
             return TodoLocalDataSource()
         }.inObjectScope(.container)
         
         // Repository 등록
-        container.register(TodoRepo.self) { (r, dataSource: TodoDataSourceProvider) in
-            return TodoRepo(dataSource)
+        container.register(TodoRepository.self) { (r, dataSource: TodoDataSourceProtocol) in
+            return TodoRepository(dataSource)
         }.inObjectScope(.container)
     }
 }

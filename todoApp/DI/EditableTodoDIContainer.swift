@@ -25,11 +25,11 @@ class EditableTodoDIContainer {
         )
     }
 
-    private func makeRepository(_ env: DataEnvironment) -> TodoRepo {
-        let dataSource:TodoDataSourceProvider = {
+    private func makeRepository(_ env: DataEnvironment) -> TodoRepository {
+        let dataSource:TodoDataSourceProtocol = {
             switch env {
             case .local:
-                return container.resolveOrFail(TodoDataSourceProvider.self)
+                return container.resolveOrFail(TodoDataSourceProtocol.self)
             
             case .stub, .production:
                 let provider = container.resolveOrFail(
@@ -39,13 +39,13 @@ class EditableTodoDIContainer {
 
                 return container
                     .resolveOrFail(
-                        TodoDataSourceProvider.self,
+                        TodoDataSourceProtocol.self,
                         argument: provider
                     )
             }
         }()
 
-        return assembler.resolver.resolveOrFail(TodoRepo.self, argument: dataSource)
+        return assembler.resolver.resolveOrFail(TodoRepository.self, argument: dataSource)
     }
 
     func makeCreateTodoVC(_ env: DataEnvironment = .local) -> CreateTodoVC {
@@ -80,7 +80,7 @@ class EditableTodoDIContainer {
 final class TodoEditableAssembly: Assembly {
     func assemble(container: Container) {
         // 생성 vm 등록
-        container.register(CreateTodoVM.self) { (_, repo: TodoRepo) in
+        container.register(CreateTodoVM.self) { (_, repo: TodoRepository) in
             CreateTodoVM(repo)
         }
 
@@ -91,7 +91,7 @@ final class TodoEditableAssembly: Assembly {
 
         // 수정 vm 등록
         container.register(EditTodoVM.self) {
-            (_, repo: TodoRepo, model: TodoModelProtocol) in
+            (_, repo: TodoRepository, model: TodoModelProtocol) in
             return EditTodoVM(model: model, repository: repo)
         }
 

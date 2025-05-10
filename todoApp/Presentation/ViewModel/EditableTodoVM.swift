@@ -31,7 +31,7 @@ class EditableTodoVM {
     let input: Input
     let output: Output
 
-    fileprivate let repo: TodoRepo
+    fileprivate let repo: TodoRepository
 
     // MARK: RX
     fileprivate let loadingRelay: BehaviorRelay<Bool> = .init(value: false)
@@ -45,7 +45,7 @@ class EditableTodoVM {
     fileprivate init(
         input: Input,
         inputValidRelay: Observable<Bool>,
-        repository: TodoRepo
+        repository: TodoRepository
     ) {
         self.repo = repository
         self.input = input
@@ -87,7 +87,7 @@ class EditableTodoVM {
 }
 
 class CreateTodoVM: EditableTodoVM {
-    init(_ repository: TodoRepo) {
+    init(_ repository: TodoRepository) {
         let input = Input(
             titleRelay: .init(value: ""),
             dateRelay: .init(value: nil),
@@ -139,7 +139,7 @@ class EditTodoVM: EditableTodoVM {
     private let isChangedContent = BehaviorRelay(value: false)
 
     // MARK: Init
-    init(model: TodoModelProtocol, repository: TodoRepo) {
+    init(model: TodoModelProtocol, repository: TodoRepository) {
         self.model = TodoModel(model)
 
         let input = Input(

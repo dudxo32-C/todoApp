@@ -8,7 +8,7 @@
 import Foundation
 import RealmSwift
 
-class TodoLocalDataSource: TodoDataSourceProvider {
+class TodoLocalDataSource: TodoDataSourceProtocol {
     var realm: Realm { get throws { try Realm() } }
 
     fileprivate func getData(id: String) throws -> TodoRealm {

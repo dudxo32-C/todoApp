@@ -8,7 +8,7 @@
 import Foundation
 import Moya
 
-class TodoRemoteDataSource: TodoDataSourceProvider {
+class TodoRemoteDataSource: TodoDataSourceProtocol {
     fileprivate var provider: MoyaProvider<TodoAPI>
 
     init(_ provider: MoyaProvider<TodoAPI>) {

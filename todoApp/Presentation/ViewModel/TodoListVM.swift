@@ -79,7 +79,7 @@ class TodoListVM {
     private var _output: Output?
 
     var disposeBag = DisposeBag()
-    let repo: TodoRepo
+    let repo: TodoRepository
 
     private let isfetching = BehaviorRelay(value: false)
     private let errorRelay = PublishRelay<Error?>()
@@ -87,7 +87,7 @@ class TodoListVM {
     private let cachedGroup = BehaviorRelay<TodoGroup>(value: [:])
     private let selectedFilter: BehaviorRelay<TodoFilterType>
 
-    init(_ repo: TodoRepo, initFilter: TodoFilterType) {
+    init(_ repo: TodoRepository, initFilter: TodoFilterType) {
         self.input = Input(
             fetchItems: PublishRelay(),
             addedItem: PublishRelay(),

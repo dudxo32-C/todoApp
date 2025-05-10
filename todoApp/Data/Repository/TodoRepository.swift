@@ -1,5 +1,5 @@
 //
-//  TodoRepo.swift
+//  TodoRepository.swift
 //  todoApp
 //
 //  Created by 조영태 on 5/8/25.
@@ -8,10 +8,10 @@
 import Foundation
 
 
-class TodoRepo {
-    private let dataSource: TodoDataSourceProvider
+class TodoRepository {
+    private let dataSource: TodoDataSourceProtocol
 
-    init(_ dataSource: TodoDataSourceProvider) {
+    init(_ dataSource: TodoDataSourceProtocol) {
         self.dataSource = dataSource
     }
 

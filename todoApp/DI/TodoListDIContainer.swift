@@ -30,10 +30,10 @@ class TodoListDIContainer {
         initFilter: TodoFilterType, env: DataEnvironment = .local
     ) -> TodoListVC {
   
-        let dataSource:TodoDataSourceProvider = {
+        let dataSource:TodoDataSourceProtocol = {
             switch env {
             case .local:
-                return container.resolveOrFail(TodoDataSourceProvider.self)
+                return container.resolveOrFail(TodoDataSourceProtocol.self)
             
             case .stub, .production:
                 let provider = container.resolveOrFail(
@@ -42,13 +42,13 @@ class TodoListDIContainer {
 
                 return container
                     .resolveOrFail(
-                        TodoDataSourceProvider.self,
+                        TodoDataSourceProtocol.self,
                         argument: provider
                     )
             }
         }()
 
-        let repo = container.resolveOrFail(TodoRepo.self, argument: dataSource)
+        let repo = container.resolveOrFail(TodoRepository.self, argument: dataSource)
         
         let viewModel = self.container.resolveOrFail(
             TodoListVM.self,
@@ -66,7 +66,7 @@ final class TodoListAssembly: Assembly {
     func assemble(container: Container) {
         // vm 등록
         container.register(TodoListVM.self) {
-            (resolver, initFilter: TodoFilterType, repo: TodoRepo) in
+            (resolver, initFilter: TodoFilterType, repo: TodoRepository) in
 
             return TodoListVM(repo, initFilter: initFilter)
         }

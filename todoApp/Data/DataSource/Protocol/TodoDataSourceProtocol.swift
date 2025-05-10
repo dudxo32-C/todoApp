@@ -9,7 +9,7 @@ import Foundation
 
 enum TodoError: Error { case notFound }
 
-protocol TodoDataSourceProvider {
+protocol TodoDataSourceProtocol {
     func fetchTodoList() async throws -> [TodoResponseResponse]
 
     func writeTodo(title: String, contents: String, date: Date) async throws
