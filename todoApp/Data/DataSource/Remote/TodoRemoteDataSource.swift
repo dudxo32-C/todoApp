@@ -15,14 +15,14 @@ class TodoRemoteDataSource: TodoDataSourceProtocol {
         self.provider = provider
     }
 
-    func fetchTodoList() async throws -> [TodoResponseResponse] {
+    func fetchTodoList() async throws -> [TodoResponse] {
         let response = await provider.request(.fetchList)
         
 
         switch response {
         case .success(let success):
             do {
-                let data = try success.toDecoded(type: [TodoResponseResponse].self)
+                let data = try success.toDecoded(type: [TodoResponse].self)
                 return data
             } catch {
                 throw error
@@ -33,13 +33,13 @@ class TodoRemoteDataSource: TodoDataSourceProtocol {
     }
 
     func writeTodo(title: String, contents: String, date: Date) async throws
-        -> TodoResponseResponse
+        -> TodoResponse
     {
         let response = await provider.request(.write(title: title, contents: contents, date: date))
         
         switch response {
         case .success(let success):
-            let data = try success.toDecoded(type: TodoResponseResponse.self)
+            let data = try success.toDecoded(type: TodoResponse.self)
             return data
         case .failure(let failure):
             throw failure
@@ -59,20 +59,20 @@ class TodoRemoteDataSource: TodoDataSourceProtocol {
         }
     }
 
-    func updateTodo(todo: TodoModelProtocol) async throws -> TodoResponseResponse {
+    func updateTodo(id:String, title: String, contents: String, date: Date, isDone: Bool) async throws -> TodoResponse {
         let response = await provider.request(
             .update(
-                id: todo.id,
-                title: todo.title,
-                contents: todo.contents,
-                isDone: todo.isDone,
-                date: todo.date
+                id: id,
+                title: title,
+                contents: contents,
+                isDone: isDone,
+                date: date
             )
         )
         
         switch response {
         case .success(let success):
-            let data = try success.toDecoded(type: TodoResponseResponse.self)
+            let data = try success.toDecoded(type: TodoResponse.self)
             return data
             
         case .failure(let failure):

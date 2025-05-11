@@ -6,8 +6,8 @@
 //
 
 import Foundation
-import Swinject
 import Moya
+import Swinject
 
 final class TodoRepositoryAssembly: Assembly {
     func assemble(container: Container) {
@@ -33,8 +33,27 @@ final class TodoRepositoryAssembly: Assembly {
         }.inObjectScope(.container)
         
         // Repository 등록
-        container.register(TodoRepository.self) { (r, dataSource: TodoDataSourceProtocol) in
-            return TodoRepository(dataSource)
+        container.register(TodoRepository.self) { (r, env: DataEnvironment) in
+            let dataSource:TodoDataSourceProtocol = {
+                switch env {
+                case .local:
+                    return container.resolveOrFail(TodoDataSourceProtocol.self)
+                
+                case .stub, .production:
+                    let provider = container.resolveOrFail(
+                        MoyaProvider<TodoAPI>.self,
+                        name: env.rawValue
+                    )
+
+                    return container
+                        .resolveOrFail(
+                            TodoDataSourceProtocol.self,
+                            argument: provider
+                        )
+                }
+            }()
+            
+            return TodoRepositoryImpl(dataSource)
         }.inObjectScope(.container)
     }
 }

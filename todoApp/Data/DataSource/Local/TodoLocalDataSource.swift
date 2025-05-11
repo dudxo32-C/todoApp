@@ -21,14 +21,14 @@ class TodoLocalDataSource: TodoDataSourceProtocol {
         return target
     }
 
-    func fetchTodoList() async throws -> [TodoResponseResponse] {
+    func fetchTodoList() async throws -> [TodoResponse] {
 
         try await _Concurrency.Task.delayTwoSecond()
 
         let todoList = try Array(realm.objects(TodoRealm.self))
 
         return todoList.map {
-            TodoResponseResponse(
+            TodoResponse(
                 id: $0._id,
                 title: $0.title,
                 date: $0.date,
@@ -39,7 +39,7 @@ class TodoLocalDataSource: TodoDataSourceProtocol {
     }
 
     func writeTodo(title: String, contents: String, date: Date)
-        async throws -> TodoResponseResponse
+        async throws -> TodoResponse
     {
         try await _Concurrency.Task.delayTwoSecond()
 
@@ -49,7 +49,7 @@ class TodoLocalDataSource: TodoDataSourceProtocol {
             try realm.add(newTodo)
         }
 
-        return TodoResponseResponse(
+        return TodoResponse(
             id: newTodo._id,
             title: newTodo.title,
             date: newTodo.date,
@@ -68,25 +68,25 @@ class TodoLocalDataSource: TodoDataSourceProtocol {
         return TodoDeleteResponse(id: id)
     }
 
-    func updateTodo(todo: TodoModelProtocol) async throws
-        -> TodoResponseResponse
+    func updateTodo(id:String, title: String, contents: String, date: Date, isDone: Bool) async throws
+        -> TodoResponse
     {
 
-        let target = try self.getData(id: todo.id)
+        let target = try self.getData(id: id)
 
         try realm.write {
-            target.title = todo.title
-            target.date = todo.date
-            target.contents = todo.contents
-            target.isDone = todo.isDone
+            target.title = title
+            target.date = date
+            target.contents = contents
+            target.isDone = isDone
         }
 
-        return TodoResponseResponse(
-            id: todo.id,
-            title: todo.title,
-            date: todo.date,
-            contents: todo.contents,
-            isDone: todo.isDone
+        return TodoResponse(
+            id: id,
+            title: title,
+            date: date,
+            contents: contents,
+            isDone: isDone
         )
 
     }

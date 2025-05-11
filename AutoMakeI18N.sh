@@ -38,5 +38,5 @@ done <${inputfile}
 echo "}" >> tempI18N.swift
 
 # cat tempI18N.swift > ${SRCROOT}/todoApp/I18N.swift
-cat tempI18N.swift > ./todoApp/I18N.swift
+cat tempI18N.swift > ./todoApp/Constant/I18N.swift
 rm tempI18N.swift

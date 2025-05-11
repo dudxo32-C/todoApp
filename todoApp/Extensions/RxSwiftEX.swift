@@ -15,7 +15,7 @@ private enum UnretainedError: Error {
 extension PrimitiveSequence where Trait == SingleTrait {
     public static func deferredWithUnretained<Object: AnyObject>(
         _ obj: Object?,
-        _ observableFactory: @escaping (_ retainedObj: Object) throws ->
+        _ observableFactory: @escaping (_ obj: Object) throws ->
             PrimitiveSequence
     ) -> PrimitiveSequence {
 
@@ -41,6 +41,21 @@ extension PrimitiveSequence where Trait == SingleTrait {
             }
 
             return Disposables.create()
+        }
+    }
+}
+
+extension Observable {
+    public static func deferredWithUnretained<Object: AnyObject>(
+        _ obj: Object?,
+        _ observableFactory: @escaping (_ obj: Object) throws ->
+        Observable
+    ) -> Observable {
+
+        return .deferred {
+            guard let obj = obj else { throw UnretainedError.failedRetaining }
+
+            return try observableFactory(obj)
         }
     }
 }
