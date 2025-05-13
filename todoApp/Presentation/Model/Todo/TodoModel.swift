@@ -1,12 +1,24 @@
 //
-//  TodoModel.swift
+//  TodoState.swift
 //  todoApp
 //
-//  Created by 조영태 on 3/5/25.
+//  Created by 조영태 on 5/11/25.
 //
 
 import Foundation
 import Differentiator
+
+typealias TodoGroup = [TodoFilterType: [TodoModel]]
+
+enum TodoFilterType: Int {
+    case past = 2
+    case today = 0
+    case future = 1
+
+    static var values: [TodoFilterType] {
+        return [.today, .future, .past]
+    }
+}
 
 protocol TodoModelProtocol {
     var id: String { get }
@@ -18,7 +30,13 @@ protocol TodoModelProtocol {
 
 extension TodoModelProtocol {
     var asTodoModel: TodoModel {
-        return TodoModel(self)
+        return TodoModel(
+            id: id,
+            title: title,
+            date: date,
+            contents: contents,
+            isDone: isDone
+        )
     }
 }
 
@@ -28,22 +46,13 @@ struct TodoModel: TodoModelProtocol {
     var date: Date
     var contents: String
     var isDone: Bool
-
-    init(id: String, title: String, date: Date, contents: String, isDone: Bool)
-    {
+    
+    init(id: String, title: String, date: Date, contents: String, isDone: Bool) {
         self.id = id
         self.title = title
         self.date = date
         self.contents = contents
         self.isDone = isDone
-    }
-
-    init(_ `protocol`: TodoModelProtocol) {
-        self.id = `protocol`.id
-        self.title = `protocol`.title
-        self.date = `protocol`.date
-        self.contents = `protocol`.contents
-        self.isDone = `protocol`.isDone
     }
 }
 

@@ -10,7 +10,12 @@ import RxCocoa
 import RxRelay
 import RxSwift
 
-extension EditableTodoVM: ViewModelProtocol, LoadingProtocol, RetryProtocol {
+extension WritableTodoVM: ViewModelProtocol, LoadingProtocol, RetryProtocol {
+    struct UseCase {
+        let addTodo: any AddTodoUseCase
+        let EditTodo: any EditTodoUseCase
+    }
+
     struct Input: RetryInput {
         let titleRelay: BehaviorRelay<String>
         let dateRelay: BehaviorRelay<Date?>
@@ -19,93 +24,108 @@ extension EditableTodoVM: ViewModelProtocol, LoadingProtocol, RetryProtocol {
         let retryTrigger = PublishRelay<RetryAction>()
     }
 
-    struct Output: LoadingOutput {
+    struct State: LoadingState {
         let inputValid: Driver<Bool>
         let editedModel: Driver<TodoModelProtocol>
         let editError: Driver<Error?>
         let isLoading: Driver<Bool>
+
+        fileprivate init(
+            inputValid: BehaviorRelay<Bool>,
+            editedModel: PublishRelay<TodoModel>,
+            editError: PublishRelay<Error?>,
+            isLoading: BehaviorRelay<Bool>
+        ) {
+            self.inputValid = inputValid.asDriver()
+
+            self.editedModel = editedModel.map { $0 as TodoModelProtocol }
+                .asDriver(onErrorDriveWith: .never())
+
+            self.editError = editError.asDriver(onErrorJustReturn: nil)
+
+            self.isLoading = isLoading.asDriver()
+        }
     }
 }
 
-class EditableTodoVM {
+class WritableTodoVM {
     let input: Input
-    let output: Output
-
-    fileprivate let repo: TodoRepo
+    let state: State
 
     // MARK: RX
     fileprivate let loadingRelay: BehaviorRelay<Bool> = .init(value: false)
     private let errorRelay: PublishRelay<Error?> = .init()
-    private let editedModelRelay: PublishRelay<TodoModelProtocol> = .init()
-
-    fileprivate let inputValidRelay: Observable<Bool>
+    private let editedModelRelay: PublishRelay<TodoModel> = .init()
+    fileprivate let inputValidRelay = BehaviorRelay<Bool>.init(value: false)
     var disposeBag = DisposeBag()
+
+    fileprivate let useCase: UseCase
 
     // MARK: Init
     fileprivate init(
         input: Input,
-        inputValidRelay: Observable<Bool>,
-        repository: TodoRepo
+        useCase: UseCase
     ) {
-        self.repo = repository
+        self.useCase = useCase
         self.input = input
-        self.inputValidRelay = inputValidRelay
 
-        self.output = Output(
-            inputValid: self.inputValidRelay.asDriver(onErrorJustReturn: false),
-            editedModel: editedModelRelay.asDriver(onErrorDriveWith: .never()),
-            editError: errorRelay.asDriver(onErrorJustReturn: nil),
-            isLoading: self.loadingRelay.asDriver()
+        self.state = State(
+            inputValid: inputValidRelay,
+            editedModel: editedModelRelay,
+            editError: errorRelay,
+            isLoading: loadingRelay
         )
 
         bindDoneTap()
     }
 
-
     private func bindDoneTap() {
         self.input.doneTap
             .withUnretained(self)
             .flatMap { (self, _) in self.handleChangeTodo() }
-            .map { $0 as TodoModelProtocol }
             .bind(to: editedModelRelay)
             .disposed(by: disposeBag)
     }
 
-    private func handleChangeTodo() -> Observable<TodoModel> {
+    private func handleChangeTodo() -> Single<TodoModel> {
         return writeTodo()
             .handleLoadingState(to: self.loadingRelay)
             .retry(when: { error in
                 return self.handelRetry(from: error, in: self.errorRelay)
             })
             .catch { _ in .never() }
-            .asObservable()
     }
-    
+
     fileprivate func writeTodo() -> Single<TodoModel> {
         preconditionFailure("Subclasses must implement doneTap()")
     }
 }
 
-class CreateTodoVM: EditableTodoVM {
-    init(_ repository: TodoRepo) {
+class CreateTodoVM: WritableTodoVM {
+    init(_ useCase: UseCase) {
         let input = Input(
             titleRelay: .init(value: ""),
             dateRelay: .init(value: nil),
             contentRelay: .init(value: "")
         )
 
-        let validation = Observable.combineLatest(
+        super.init(
+            input: input,
+            useCase: useCase
+        )
+
+        bindValid()
+    }
+
+    private func bindValid() {
+        Observable.combineLatest(
             input.titleRelay, input.dateRelay
         )
         .map { (title: String, date: Date?) in
             return !(title.isEmpty) && date != nil
         }
-
-        super.init(
-            input: input,
-            inputValidRelay: validation,
-            repository: repository
-        )
+        .bind(to: inputValidRelay)
+        .disposed(by: disposeBag)
     }
 
     override func writeTodo() -> Single<TodoModel> {
@@ -115,22 +135,22 @@ class CreateTodoVM: EditableTodoVM {
 
         let title = self.input.titleRelay.value
         let contents = self.input.contentRelay.value
-        
-        return .deferredWithUnretained(self) { retainedObj in
+
+        return .deferredWithUnretained(self) { obj in
             return .async {
-                let response = try await retainedObj.repo.writeTodo(
+                let response = try await obj.useCase.addTodo.execute(
                     title: title,
                     contents: contents,
                     date: date
                 )
 
-                return response.asTodoModel
+                return TodoMapper.toModel(response)
             }
         }
     }
 }
 
-class EditTodoVM: EditableTodoVM {
+class EditTodoVM: WritableTodoVM {
     // MARK: Property
     private let model: TodoModel
     // MARK: RX
@@ -139,8 +159,8 @@ class EditTodoVM: EditableTodoVM {
     private let isChangedContent = BehaviorRelay(value: false)
 
     // MARK: Init
-    init(model: TodoModelProtocol, repository: TodoRepo) {
-        self.model = TodoModel(model)
+    init(model: TodoModelProtocol, useCase: UseCase) {
+        self.model = model.asTodoModel
 
         let input = Input(
             titleRelay: .init(value: model.title),
@@ -148,6 +168,16 @@ class EditTodoVM: EditableTodoVM {
             contentRelay: .init(value: model.contents)
         )
 
+        super.init(
+            input: input,
+            useCase: useCase
+        )
+
+        bindValid()
+        bindChangeText()
+    }
+
+    private func bindValid() {
         // 변화가 있는지 체크
         let isChangedInput = Observable.combineLatest(
             self.isChangedTitle,
@@ -156,7 +186,7 @@ class EditTodoVM: EditableTodoVM {
         ).map { $0 || $1 || $2 }
 
         // 변화가 있고 기본 validation을 만족
-        let validation = Observable.combineLatest(
+        Observable.combineLatest(
             input.titleRelay,
             input.dateRelay,
             isChangedInput
@@ -164,25 +194,23 @@ class EditTodoVM: EditableTodoVM {
         .map { (title: String, date: Date?, isChanged: Bool) in
             return !(title.isEmpty) && date != nil && isChanged
         }
+        .bind(to: inputValidRelay)
+        .disposed(by: disposeBag)
+    }
 
-        super.init(
-            input: input,
-            inputValidRelay: validation,
-            repository: repository
-        )
-
-        input.titleRelay.map { $0 != model.title }
+    private func bindChangeText() {
+        input.titleRelay.map { $0 != self.model.title }
             .bind(to: isChangedTitle)
             .disposed(by: disposeBag)
 
         input.dateRelay.map {
             guard let date = $0 else { return false }
-            return !Calendar.current.isDate(date, inSameDayAs: model.date)
+            return !Calendar.current.isDate(date, inSameDayAs: self.model.date)
         }
         .bind(to: isChangedDate)
         .disposed(by: disposeBag)
 
-        input.contentRelay.map { $0 != model.title }
+        input.contentRelay.map { $0 != self.model.title }
             .bind(to: isChangedContent)
             .disposed(by: disposeBag)
     }
@@ -195,18 +223,17 @@ class EditTodoVM: EditableTodoVM {
         let title = self.input.titleRelay.value
         let contents = self.input.contentRelay.value
 
-        return .deferredWithUnretained(self) { retainedObj in
+        return .deferredWithUnretained(self) { obj in
             return .async {
 
-                let newTodo = retainedObj.model.copyWith(
-                    title: title,
-                    date: date,
-                    contents: contents
+                let response = try await obj.useCase.EditTodo.execute(
+                    TodoMapper.toEntity(obj.model),
+                    newTitle: title,
+                    newDate: date,
+                    newContents: contents
                 )
 
-                let response = try await retainedObj.repo.updateTodo(newTodo)
-
-                return response.asTodoModel
+                return TodoMapper.toModel(response)
             }
         }
     }

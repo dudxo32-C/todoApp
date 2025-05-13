@@ -1,5 +1,5 @@
 //
-//  TodoRepo.swift
+//  TodoRepository.swift
 //  todoApp
 //
 //  Created by 조영태 on 5/8/25.
@@ -8,21 +8,21 @@
 import Foundation
 
 
-class TodoRepo {
-    private let dataSource: TodoDataSourceProvider
+class TodoRepositoryImpl: TodoRepository {
+    private let dataSource: TodoDataSourceProtocol
 
-    init(_ dataSource: TodoDataSourceProvider) {
+    init(_ dataSource: TodoDataSourceProtocol) {
         self.dataSource = dataSource
     }
 
     /// 할일 목록 불러오기
     /// - Throws: ``NetworkError``
     /// - Returns: `Todo` 데이터 모델 배열
-    func fetchTodoList() async throws -> [TodoModelProtocol] {
+    func fetchTodoList() async throws -> [Todo] {
         let response = try await dataSource.fetchTodoList()
 
         return response.map { res in
-            TodoModel(
+            Todo(
                 id: res.id,
                 title: res.title,
                 date: res.date,
@@ -36,12 +36,12 @@ class TodoRepo {
     /// - Throws: ``NetworkError``
     /// - Returns: `Todo` 데이터 모델
     func writeTodo(title: String, contents: String, date: Date) async throws
-        -> TodoModelProtocol
+        -> Todo
     {
         let response = try await dataSource.writeTodo(
             title: title, contents: contents, date: date)
 
-        return TodoModel(
+        return Todo(
             id: response.id,
             title: response.title,
             date: response.date,
@@ -62,11 +62,17 @@ class TodoRepo {
     /// 할일 목록 수정하기
     /// - Throws: ``NetworkError``, ``TodoError``
     /// - Returns: `Todo` 데이터 모델
-    func updateTodo(_ todo: TodoModelProtocol) async throws -> TodoModelProtocol
+    func updateTodo(id:String, title: String, contents: String, date: Date,isDone:Bool) async throws -> Todo
     {
-        let response = try await dataSource.updateTodo(todo: todo)
+        let response = try await dataSource.updateTodo(
+            id: id,
+            title: title,
+            contents: contents,
+            date: date,
+            isDone: isDone
+        )
 
-        return TodoModel(
+        return Todo(
             id: response.id,
             title: response.title,
             date: response.date,

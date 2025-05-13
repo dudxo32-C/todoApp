@@ -148,13 +148,13 @@ class TodoListVC: UIViewController {
 
     // MARK: - Binding
     private func bindLoading() {
-        self.viewModel.output.isLoading
+        self.viewModel.state.isLoading
             .drive(loadingIndicator.rx.isAnimating)
             .disposed(by: disposeBag)
     }
 
     private func bindErrorAlert() {
-        viewModel.output.error
+        viewModel.state.error
             .compactMap { $0?.localizedDescription }
             .drive { e in
                 self.rx.showRetry(
@@ -199,21 +199,24 @@ class TodoListVC: UIViewController {
                 return cell
             },
             titleForHeaderInSection: { dataSource, index in
+//                let formatter = DateFormatter()
+//                formatter.dateFormat = "yyyy/MM/dd"
+//                formatter.locale = Locale(identifier: "ko_KR")
                 return dataSource.sectionModels[index].header
             }
         )
 
-        viewModel.output.items
+        viewModel.state.items
             .drive(tableView.rx.items(dataSource: dataSource))
             .disposed(by: disposeBag)
     }
 
     private func bindNoListLabel() {
-        let isFetching = self.viewModel.output
+        let isFetching = self.viewModel.state
             .isLoading
             .asObservable()
 
-        let isEmptyItems = viewModel.output.items
+        let isEmptyItems = viewModel.state.items
             .map { $0.isEmpty }
             .asObservable()
 

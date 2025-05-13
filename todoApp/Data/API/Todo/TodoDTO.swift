@@ -8,7 +8,7 @@
 import Foundation
 
 // MARK: - TODO List
-struct TodoResponseResponse: Codable {
+struct TodoResponse: Codable {
     let id: String
     let title: String
     let date: Date
