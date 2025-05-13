@@ -29,7 +29,7 @@ final class DefaultEditTodoUseCase: EditTodoUseCase {
     func execute(_ target:Todo, newTitle:String?, newDate:Date?, newContents:String? ) async throws -> Todo {
         do {
             
-            let newTodo  = Todo(
+            let newTodo  = TodoImpl(
                 id: target.id,
                 title: newTitle ?? target.title,
                 date: newDate ?? target.date,
@@ -37,13 +37,7 @@ final class DefaultEditTodoUseCase: EditTodoUseCase {
                 isDone: target.isDone
             )
             
-            let response = try await repository.updateTodo(
-                id: newTodo.id,
-                title: newTodo.title,
-                contents: newTodo.contents,
-                date: newTodo.date,
-                isDone: newTodo.isDone
-            )
+            let response = try await repository.updateTodo(newTodo)
             
             return response
         } catch TodoError.notFound {

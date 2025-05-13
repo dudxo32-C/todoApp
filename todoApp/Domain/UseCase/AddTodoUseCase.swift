@@ -30,11 +30,9 @@ final class DefaultAddTodoUseCase: AddTodoUseCase {
         -> Todo
     {
         do {
-            let newTodo = try await repository.writeTodo(
-                title: title,
-                contents: contents,
-                date: date
-            )
+            let creatable = CreatableToDoImpl(
+                title: title, date: date, contents: contents)
+            let newTodo = try await repository.writeTodo(creatable)
 
             return newTodo
         } catch {

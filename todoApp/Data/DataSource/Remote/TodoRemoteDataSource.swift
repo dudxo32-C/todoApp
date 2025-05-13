@@ -15,14 +15,16 @@ class TodoRemoteDataSource: TodoDataSourceProtocol {
         self.provider = provider
     }
 
-    func fetchTodoList() async throws -> [TodoResponse] {
+    func fetchTodoList() async throws -> [TodoResponse.Fetch] {
         let response = await provider.request(.fetchList)
         
 
         switch response {
         case .success(let success):
             do {
-                let data = try success.toDecoded(type: [TodoResponse].self)
+                let data = try success.toDecoded(
+                    type: [TodoResponse.Fetch].self
+                )
                 return data
             } catch {
                 throw error
@@ -32,26 +34,26 @@ class TodoRemoteDataSource: TodoDataSourceProtocol {
         }
     }
 
-    func writeTodo(title: String, contents: String, date: Date) async throws
-        -> TodoResponse
+    func writeTodo(_ param:TodoRequest.Write) async throws
+    -> TodoResponse.Write
     {
-        let response = await provider.request(.write(title: title, contents: contents, date: date))
+        let response = await provider.request(.write(param))
         
         switch response {
         case .success(let success):
-            let data = try success.toDecoded(type: TodoResponse.self)
+            let data = try success.toDecoded(type: TodoResponse.Write.self)
             return data
         case .failure(let failure):
             throw failure
         }
     }
 
-    func deleteTodo(id: String) async throws -> TodoDeleteResponse {
-        let response = await provider.request(.delete(id: id))
+    func deleteTodo(_ param:TodoRequest.Delete) async throws -> TodoResponse.Delete {
+        let response = await provider.request(.delete(param))
         
         switch response {
         case .success(let success):
-            let data = try success.toDecoded(type: TodoDeleteResponse.self)
+            let data = try success.toDecoded(type: TodoResponse.Delete.self)
             return data
             
         case .failure(let failure):
@@ -59,20 +61,12 @@ class TodoRemoteDataSource: TodoDataSourceProtocol {
         }
     }
 
-    func updateTodo(id:String, title: String, contents: String, date: Date, isDone: Bool) async throws -> TodoResponse {
-        let response = await provider.request(
-            .update(
-                id: id,
-                title: title,
-                contents: contents,
-                isDone: isDone,
-                date: date
-            )
-        )
+    func updateTodo(_ param:TodoRequest.Update) async throws -> TodoResponse.Update {
+        let response = await provider.request(.update(param))
         
         switch response {
         case .success(let success):
-            let data = try success.toDecoded(type: TodoResponse.self)
+            let data = try success.toDecoded(type: TodoResponse.Update.self)
             return data
             
         case .failure(let failure):

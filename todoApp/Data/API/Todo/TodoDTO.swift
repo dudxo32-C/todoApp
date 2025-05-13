@@ -7,38 +7,88 @@
 
 import Foundation
 
-// MARK: - TODO List
-struct TodoResponse: Codable {
-    let id: String
-    let title: String
-    let date: Date
-    let contents: String
-    let isDone: Bool
-    
-    init (id: String, title: String, date: Date, contents: String, isDone: Bool) {
-        self.id = id
-        self.title = title
-        self.date = date
-        self.contents = contents
-        self.isDone = isDone
+// MARK: - Response
+struct TodoResponse {
+    struct Fetch: Codable {
+        let id: String
+        let title: String
+        let date: Date
+        let contents: String
+        let isDone: Bool
     }
     
-    init(from decoder: any Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.id = try container.decode(String.self, forKey: .id)
-        self.title = try container.decode(String.self, forKey: .title)
-        
-        let dateStr = try container.decode(String.self, forKey: .date)
-        
-        let formatter = ISO8601DateFormatter()
-        let date = formatter.date(from: dateStr)
-        self.date = date ?? Date()
-        
-        self.contents = try container.decode(String.self, forKey: .contents)
-        self.isDone = try container.decode(Bool.self, forKey: .isDone)
+    struct Write: Codable {
+        let id: String
+        let title: String
+        let date: Date
+        let contents: String
+        let isDone: Bool
+    }
+    
+    struct Delete: Codable {
+        let id: String
+    }
+    
+    struct Update: Codable {
+        let id: String
+        let title: String
+        let date: Date
+        let contents: String
+        let isDone: Bool
     }
 }
 
-struct TodoDeleteResponse: Codable {
-    let id: String
+// MARK: - Request
+struct TodoRequest{
+    struct Write {
+        let title:String
+        let date:Date
+        let contents:String
+    }
+    
+    struct Delete: Encodable {
+        let id:String
+    }
+    
+    struct Update {
+        let id:String
+        let title:String
+        let contents:String
+        let isDone:Bool
+        let date:Date
+    }
+}
+extension TodoRequest.Write: Encodable {
+    func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
+        try container.encode(title, forKey: .title)
+        try container.encode(contents, forKey: .contents)
+        
+        let formatter = ISO8601DateFormatter()
+        let dateString = formatter.string(from: date)
+        try container.encode(dateString, forKey: .date)
+    }
+    
+    enum CodingKeys: String, CodingKey {
+        case title, date, contents
+    }
+}
+extension TodoRequest.Update: Encodable {
+    func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
+        try container.encode(id, forKey: .id)
+        try container.encode(title, forKey: .title)
+        try container.encode(contents, forKey: .contents)
+        try container.encode(isDone, forKey: .isDone)
+        
+        let formatter = ISO8601DateFormatter()
+        let dateString = formatter.string(from: date)
+        try container.encode(dateString, forKey: .date)
+    }
+    
+    enum CodingKeys: String, CodingKey {
+        case id, title, contents, isDone, date
+    }
 }

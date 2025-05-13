@@ -154,7 +154,7 @@ class EditableTodoVC: UIViewController {
     }
     
     fileprivate func didFinishWriting(_ todo:TodoModelProtocol) {
-        preconditionFailure("Subclasses must implement didFinishWriting()")
+        fatalError("Subclasses must implement didFinishWriting()")
     }
 }
 

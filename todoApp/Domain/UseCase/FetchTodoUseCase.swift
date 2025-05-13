@@ -35,6 +35,8 @@ final class DefaultFetchTodoUseCase: FetchTodoUseCase {
             switch error {
             case .DecodedFailed:
                 throw error
+            case .DictionaryFailed:
+                throw error
             }
         } catch {
             throw Error.ServerError
