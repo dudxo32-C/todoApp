@@ -97,7 +97,7 @@ class WritableTodoVM {
     }
 
     fileprivate func writeTodo() -> Single<TodoModel> {
-        preconditionFailure("Subclasses must implement doneTap()")
+        fatalError("Subclasses must implement doneTap()")
     }
 }
 

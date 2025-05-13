@@ -24,4 +24,5 @@ public enum APIEnvironment {
 
 enum NetworkError : Error {
     case DecodedFailed
+    case DictionaryFailed
 }

@@ -10,16 +10,15 @@ import Moya
 
 enum TodoAPI {
     case fetchList
-    case write(title:String, contents:String, date:Date)
+    case write(title: String, contents: String, date: Date)
     case delete(id: String)
     case update(
-        id:String,
-        title:String,
-        contents:String,
-        isDone:Bool,
-        date:Date
+        id: String,
+        title: String,
+        contents: String,
+        isDone: Bool,
+        date: Date
     )
-
 }
 
 extension TodoAPI: TargetType {
@@ -41,28 +40,28 @@ extension TodoAPI: TargetType {
         case .fetchList:
             return .requestPlain
         case .write(let title, let contents, let date):
-            return .requestParameters(
-                parameters: [
-                    "title": title,
-                    "date": date,
-                    "contents": contents,
-                ], encoding: URLEncoding.httpBody
+            let decodable = TodoRequest.Write(
+                title: title,
+                date: date,
+                contents: contents
             )
+
+            return .requestJSONEncodable(decodable)
+
         case .delete(let id):
-            return .requestParameters(
-                parameters: ["id": id],
-                encoding: URLEncoding.queryString
+            let encodable = TodoRequest.Delete(id: id)
+            return .requestJSONEncodableToQuery(encodable)
+
+        case .update(let id, let title, let contents, let isDone, let date):
+            let encodable = TodoRequest.Update(
+                id: id,
+                title: title,
+                contents: contents,
+                isDone: isDone,
+                date: date
             )
-        case .update(let id, let title,let contents,let isDone,let date):
-            return .requestParameters(
-                parameters: [
-                    "id": id,
-                    "title": title,
-                    "completed": isDone,
-                    "date": date,
-                    "contents": contents,
-                ], encoding: URLEncoding.queryString
-            )
+
+            return .requestJSONEncodableToQuery(encodable)
         }
     }
 
@@ -90,30 +89,32 @@ extension TodoAPI: TargetType {
     var sampleData: Data {
         switch self {
         case .fetchList:
-            return SampleDataLoader.loadJSON(named: "fetch")
+            return SampleDataFactory.loadJSONFile(named: "fetch")
+        
         case .write(let title, let contents, let date):
-            let data = [
-                "id":"smaple ID",
-                "title":title,
-                "isDone":false,
-                "date":date.description,
-                "contents":contents
-            ] as [String : Any]
-            
-            return try! JSONSerialization.data(withJSONObject: data)
+            let sample = TodoResponse.Write(
+                id: "sample ID",
+                title: title,
+                date: date,
+                contents: contents,
+                isDone: false
+            )
+
+            return SampleDataFactory.make(sample)
+
         case .delete(let id):
-            return try! JSONSerialization.data(withJSONObject: ["id": id])
+            return SampleDataFactory.make(TodoResponse.Delete(id: id))
+
+        case .update(let id, let title, let contents, let isDone, let date):
+            let sample = TodoResponse.Update(
+                id: id,
+                title: title,
+                date: date,
+                contents: contents,
+                isDone: isDone
+            )
             
-        case .update(let id, let title,let contents,let isDone,let date):
-            let data = [
-                "id":id,
-                "title":title,
-                "isDone":isDone,
-                "date":date.description,
-                "contents":contents
-            ] as [String : Any]
-            
-            return try! JSONSerialization.data(withJSONObject: data)
+            return SampleDataFactory.make(sample)
         }
     }
 }

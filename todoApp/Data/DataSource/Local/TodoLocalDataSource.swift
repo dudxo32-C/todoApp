@@ -21,14 +21,14 @@ class TodoLocalDataSource: TodoDataSourceProtocol {
         return target
     }
 
-    func fetchTodoList() async throws -> [TodoResponse] {
+    func fetchTodoList() async throws -> [Write] {
 
         try await _Concurrency.Task.delayTwoSecond()
 
         let todoList = try Array(realm.objects(TodoRealm.self))
 
         return todoList.map {
-            TodoResponse(
+            Write(
                 id: $0._id,
                 title: $0.title,
                 date: $0.date,
@@ -39,7 +39,7 @@ class TodoLocalDataSource: TodoDataSourceProtocol {
     }
 
     func writeTodo(title: String, contents: String, date: Date)
-        async throws -> TodoResponse
+        async throws -> Write
     {
         try await _Concurrency.Task.delayTwoSecond()
 
@@ -49,7 +49,7 @@ class TodoLocalDataSource: TodoDataSourceProtocol {
             try realm.add(newTodo)
         }
 
-        return TodoResponse(
+        return Write(
             id: newTodo._id,
             title: newTodo.title,
             date: newTodo.date,
@@ -58,18 +58,18 @@ class TodoLocalDataSource: TodoDataSourceProtocol {
         )
     }
 
-    func deleteTodo(id: String) async throws -> TodoDeleteResponse {
+    func deleteTodo(id: String) async throws -> Delete {
         let target = try self.getData(id: id)
 
         try realm.write {
             try realm.delete(target)
         }
 
-        return TodoDeleteResponse(id: id)
+        return Delete(id: id)
     }
 
     func updateTodo(id:String, title: String, contents: String, date: Date, isDone: Bool) async throws
-        -> TodoResponse
+        -> Write
     {
 
         let target = try self.getData(id: id)
@@ -81,7 +81,7 @@ class TodoLocalDataSource: TodoDataSourceProtocol {
             target.isDone = isDone
         }
 
-        return TodoResponse(
+        return Write(
             id: id,
             title: title,
             date: date,
