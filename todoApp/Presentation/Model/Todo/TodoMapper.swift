@@ -9,7 +9,7 @@ import Foundation
 
 struct TodoMapper {
     static func toEntity(_ model: TodoModelProtocol) -> Todo {
-        return Todo(
+        return TodoImpl(
             id: model.id,
             title: model.title,
             date: model.date,

@@ -10,15 +10,9 @@ import Moya
 
 enum TodoAPI {
     case fetchList
-    case write(title: String, contents: String, date: Date)
-    case delete(id: String)
-    case update(
-        id: String,
-        title: String,
-        contents: String,
-        isDone: Bool,
-        date: Date
-    )
+    case write(_ request:TodoRequest.Write)
+    case delete(_ request:TodoRequest.Delete)
+    case update(_ request:TodoRequest.Update)
 }
 
 extension TodoAPI: TargetType {
@@ -39,26 +33,20 @@ extension TodoAPI: TargetType {
         switch self {
         case .fetchList:
             return .requestPlain
-        case .write(let title, let contents, let date):
-            let decodable = TodoRequest.Write(
-                title: title,
-                date: date,
-                contents: contents
-            )
+        
+        case .write(let request):
+            return .requestJSONEncodable(request)
 
-            return .requestJSONEncodable(decodable)
+        case .delete(let request):
+            return .requestJSONEncodableToQuery(request)
 
-        case .delete(let id):
-            let encodable = TodoRequest.Delete(id: id)
-            return .requestJSONEncodableToQuery(encodable)
-
-        case .update(let id, let title, let contents, let isDone, let date):
+        case .update(let request):
             let encodable = TodoRequest.Update(
-                id: id,
-                title: title,
-                contents: contents,
-                isDone: isDone,
-                date: date
+                id: request.id,
+                title: request.title,
+                contents: request.contents,
+                isDone: request.isDone,
+                date: request.date
             )
 
             return .requestJSONEncodableToQuery(encodable)
@@ -91,27 +79,27 @@ extension TodoAPI: TargetType {
         case .fetchList:
             return SampleDataFactory.loadJSONFile(named: "fetch")
         
-        case .write(let title, let contents, let date):
+        case .write(let request):
             let sample = TodoResponse.Write(
                 id: "sample ID",
-                title: title,
-                date: date,
-                contents: contents,
+                title: request.title,
+                date: request.date,
+                contents: request.contents,
                 isDone: false
             )
 
             return SampleDataFactory.make(sample)
 
-        case .delete(let id):
-            return SampleDataFactory.make(TodoResponse.Delete(id: id))
+        case .delete(let request):
+            return SampleDataFactory.make(request)
 
-        case .update(let id, let title, let contents, let isDone, let date):
+        case .update(let request):
             let sample = TodoResponse.Update(
-                id: id,
-                title: title,
-                date: date,
-                contents: contents,
-                isDone: isDone
+                id: request.id,
+                title: request.title,
+                date: request.date,
+                contents: request.contents,
+                isDone: request.isDone
             )
             
             return SampleDataFactory.make(sample)

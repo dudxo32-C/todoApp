@@ -7,19 +7,27 @@
 
 import Foundation
 
-struct Todo {
+protocol CreatableTodo {
+    var title: String { get }
+    var date: Date { get }
+    var contents: String { get }
+}
+
+struct CreatableToDoImpl: CreatableTodo {
+    var title: String
+    var date: Date
+    var contents: String
+}
+
+protocol Todo : CreatableTodo {
+    var id: String { get }
+    var isDone: Bool { get }
+}
+
+struct TodoImpl: Todo {
     var id: String
     var title: String
     var date: Date
     var contents: String
     var isDone: Bool
-
-    init(id: String, title: String, date: Date, contents: String, isDone: Bool)
-    {
-        self.id = id
-        self.title = title
-        self.date = date
-        self.contents = contents
-        self.isDone = isDone
-    }
 }

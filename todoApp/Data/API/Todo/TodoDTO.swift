@@ -38,8 +38,6 @@ struct TodoResponse {
     }
 }
 
-
-
 // MARK: - Request
 struct TodoRequest{
     struct Write {

@@ -7,7 +7,6 @@
 
 import Foundation
 
-
 class TodoRepositoryImpl: TodoRepository {
     private let dataSource: TodoDataSourceProtocol
 
@@ -22,7 +21,7 @@ class TodoRepositoryImpl: TodoRepository {
         let response = try await dataSource.fetchTodoList()
 
         return response.map { res in
-            Todo(
+            TodoImpl(
                 id: res.id,
                 title: res.title,
                 date: res.date,
@@ -35,13 +34,16 @@ class TodoRepositoryImpl: TodoRepository {
     /// 할일 목록 작성하기
     /// - Throws: ``NetworkError``
     /// - Returns: `Todo` 데이터 모델
-    func writeTodo(title: String, contents: String, date: Date) async throws
-        -> Todo
-    {
-        let response = try await dataSource.writeTodo(
-            title: title, contents: contents, date: date)
+    func writeTodo(_ creatable: CreatableTodo) async throws -> Todo {
+        let param = TodoRequest.Write(
+            title: creatable.title,
+            date: creatable.date,
+            contents: creatable.contents
+        )
 
-        return Todo(
+        let response = try await dataSource.writeTodo(param)
+
+        return TodoImpl(
             id: response.id,
             title: response.title,
             date: response.date,
@@ -54,7 +56,8 @@ class TodoRepositoryImpl: TodoRepository {
     /// - Throws: ``NetworkError``, ``TodoError``
     /// - Returns: Todo 모델의 `id`
     func deleteTodo(_ id: String) async throws -> String {
-        let response = try await dataSource.deleteTodo(id: id)
+        let requestParm = TodoRequest.Delete(id: id)
+        let response = try await dataSource.deleteTodo(requestParm)
 
         return response.id
     }
@@ -62,17 +65,18 @@ class TodoRepositoryImpl: TodoRepository {
     /// 할일 목록 수정하기
     /// - Throws: ``NetworkError``, ``TodoError``
     /// - Returns: `Todo` 데이터 모델
-    func updateTodo(id:String, title: String, contents: String, date: Date,isDone:Bool) async throws -> Todo
-    {
-        let response = try await dataSource.updateTodo(
-            id: id,
-            title: title,
-            contents: contents,
-            date: date,
-            isDone: isDone
+    func updateTodo(_ todo: Todo) async throws -> Todo {
+        let param = TodoRequest.Update(
+            id: todo.id,
+            title: todo.title,
+            contents: todo.contents,
+            isDone: todo.isDone,
+            date: todo.date
         )
 
-        return Todo(
+        let response = try await dataSource.updateTodo(param)
+
+        return TodoImpl(
             id: response.id,
             title: response.title,
             date: response.date,
