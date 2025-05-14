@@ -91,6 +91,10 @@ extension TodoAPI: TargetType {
             return SampleDataFactory.make(sample)
 
         case .delete(let request):
+            let sample = TodoResponse.Delete(
+                id: request.id
+            )
+
             return SampleDataFactory.make(request)
 
         case .update(let request):
