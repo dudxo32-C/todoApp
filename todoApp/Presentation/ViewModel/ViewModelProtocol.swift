@@ -12,10 +12,11 @@ import RxSwift
 
 protocol ViewModelProtocol: AnyObject {
     associatedtype Input
-    associatedtype Output
+    associatedtype State
+    associatedtype UseCase
 
     var input: Input { get }
-    var output: Output { get }
+    var state: State { get }
     var disposeBag: DisposeBag { get set }
 }
 
@@ -49,28 +50,14 @@ extension RetryProtocol {
                     }
             }
     }
-
-    func handelRetry(_ error: Error) -> Observable<Void> {
-        return self.input.retryTrigger
-            .flatMap { action in
-                switch action {
-                case .retry:
-                    return Observable.just(())
-
-                case .none:
-                    return Observable.error(error)
-                }
-            }
-    }
-
 }
 
 // MARK: - 로딩 인디케이터 프로토콜
-protocol LoadingOutput {
+protocol LoadingState {
     var isLoading: Driver<Bool> { get }
 }
 
-protocol LoadingProtocol: ViewModelProtocol where Output: LoadingOutput {}
+protocol LoadingProtocol: ViewModelProtocol where State: LoadingState {}
 
 extension PrimitiveSequence where Trait == SingleTrait {
     func handleLoadingState(

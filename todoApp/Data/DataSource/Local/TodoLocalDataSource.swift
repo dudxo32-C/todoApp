@@ -8,7 +8,7 @@
 import Foundation
 import RealmSwift
 
-class TodoLocalDataSource: TodoDataSourceProvider {
+class TodoLocalDataSource: TodoDataSourceProtocol {
     var realm: Realm { get throws { try Realm() } }
 
     fileprivate func getData(id: String) throws -> TodoRealm {
@@ -21,14 +21,14 @@ class TodoLocalDataSource: TodoDataSourceProvider {
         return target
     }
 
-    func fetchTodoList() async throws -> [TodoResponseResponse] {
+    func fetchTodoList() async throws -> [TodoResponse.Fetch] {
 
         try await _Concurrency.Task.delayTwoSecond()
 
         let todoList = try Array(realm.objects(TodoRealm.self))
 
         return todoList.map {
-            TodoResponseResponse(
+            TodoResponse.Fetch(
                 id: $0._id,
                 title: $0.title,
                 date: $0.date,
@@ -38,18 +38,22 @@ class TodoLocalDataSource: TodoDataSourceProvider {
         }
     }
 
-    func writeTodo(title: String, contents: String, date: Date)
-        async throws -> TodoResponseResponse
+    func writeTodo(_ param: TodoRequest.Write)
+        async throws -> TodoResponse.Write
     {
         try await _Concurrency.Task.delayTwoSecond()
 
-        let newTodo = TodoRealm(title: title, date: date, contents: contents)
+        let newTodo = TodoRealm(
+            title: param.title,
+            date: param.date,
+            contents: param.contents
+        )
 
         try realm.write {
             try realm.add(newTodo)
         }
 
-        return TodoResponseResponse(
+        return TodoResponse.Write(
             id: newTodo._id,
             title: newTodo.title,
             date: newTodo.date,
@@ -58,35 +62,36 @@ class TodoLocalDataSource: TodoDataSourceProvider {
         )
     }
 
-    func deleteTodo(id: String) async throws -> TodoDeleteResponse {
-        let target = try self.getData(id: id)
+    func deleteTodo(_ param: TodoRequest.Delete) async throws
+        -> TodoResponse.Delete
+    {
+        let target = try self.getData(id: param.id)
 
         try realm.write {
             try realm.delete(target)
         }
 
-        return TodoDeleteResponse(id: id)
+        return TodoResponse.Delete(id: param.id)
     }
 
-    func updateTodo(todo: TodoModelProtocol) async throws
-        -> TodoResponseResponse
+    func updateTodo(_ param: TodoRequest.Update) async throws
+        -> TodoResponse.Update
     {
-
-        let target = try self.getData(id: todo.id)
+        let target = try self.getData(id: param.id)
 
         try realm.write {
-            target.title = todo.title
-            target.date = todo.date
-            target.contents = todo.contents
-            target.isDone = todo.isDone
+            target.title = param.title
+            target.date = param.date
+            target.contents = param.contents
+            target.isDone = param.isDone
         }
 
-        return TodoResponseResponse(
-            id: todo.id,
-            title: todo.title,
-            date: todo.date,
-            contents: todo.contents,
-            isDone: todo.isDone
+        return TodoResponse.Update(
+            id: param.id,
+            title: param.title,
+            date: param.date,
+            contents: param.contents,
+            isDone: param.isDone
         )
 
     }

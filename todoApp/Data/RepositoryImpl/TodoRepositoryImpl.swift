@@ -1,5 +1,5 @@
 //
-//  TodoRepo.swift
+//  TodoRepository.swift
 //  todoApp
 //
 //  Created by 조영태 on 5/8/25.
@@ -7,22 +7,21 @@
 
 import Foundation
 
+class TodoRepositoryImpl: TodoRepository {
+    private let dataSource: TodoDataSourceProtocol
 
-class TodoRepo {
-    private let dataSource: TodoDataSourceProvider
-
-    init(_ dataSource: TodoDataSourceProvider) {
+    init(_ dataSource: TodoDataSourceProtocol) {
         self.dataSource = dataSource
     }
 
     /// 할일 목록 불러오기
     /// - Throws: ``NetworkError``
     /// - Returns: `Todo` 데이터 모델 배열
-    func fetchTodoList() async throws -> [TodoModelProtocol] {
+    func fetchTodoList() async throws -> [Todo] {
         let response = try await dataSource.fetchTodoList()
 
         return response.map { res in
-            TodoModel(
+            TodoImpl(
                 id: res.id,
                 title: res.title,
                 date: res.date,
@@ -35,13 +34,16 @@ class TodoRepo {
     /// 할일 목록 작성하기
     /// - Throws: ``NetworkError``
     /// - Returns: `Todo` 데이터 모델
-    func writeTodo(title: String, contents: String, date: Date) async throws
-        -> TodoModelProtocol
-    {
-        let response = try await dataSource.writeTodo(
-            title: title, contents: contents, date: date)
+    func writeTodo(_ creatable: CreatableTodo) async throws -> Todo {
+        let param = TodoRequest.Write(
+            title: creatable.title,
+            date: creatable.date,
+            contents: creatable.contents
+        )
 
-        return TodoModel(
+        let response = try await dataSource.writeTodo(param)
+
+        return TodoImpl(
             id: response.id,
             title: response.title,
             date: response.date,
@@ -54,7 +56,8 @@ class TodoRepo {
     /// - Throws: ``NetworkError``, ``TodoError``
     /// - Returns: Todo 모델의 `id`
     func deleteTodo(_ id: String) async throws -> String {
-        let response = try await dataSource.deleteTodo(id: id)
+        let requestParm = TodoRequest.Delete(id: id)
+        let response = try await dataSource.deleteTodo(requestParm)
 
         return response.id
     }
@@ -62,11 +65,18 @@ class TodoRepo {
     /// 할일 목록 수정하기
     /// - Throws: ``NetworkError``, ``TodoError``
     /// - Returns: `Todo` 데이터 모델
-    func updateTodo(_ todo: TodoModelProtocol) async throws -> TodoModelProtocol
-    {
-        let response = try await dataSource.updateTodo(todo: todo)
+    func updateTodo(_ todo: Todo) async throws -> Todo {
+        let param = TodoRequest.Update(
+            id: todo.id,
+            title: todo.title,
+            contents: todo.contents,
+            isDone: todo.isDone,
+            date: todo.date
+        )
 
-        return TodoModel(
+        let response = try await dataSource.updateTodo(param)
+
+        return TodoImpl(
             id: response.id,
             title: response.title,
             date: response.date,

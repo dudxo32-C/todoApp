@@ -30,7 +30,7 @@ class EditableTodoVC: UIViewController {
     }
 
     // MARK: ViewModel
-    fileprivate let viewModel: EditableTodoVM
+    fileprivate let viewModel: WritableTodoVM
 
     // MARK: RX
     private let isDatePickerVisible = BehaviorRelay(value: false)
@@ -44,7 +44,7 @@ class EditableTodoVC: UIViewController {
 
     // MARK: Init
     fileprivate init(
-        viewModel: EditableTodoVM,
+        viewModel: WritableTodoVM,
         model: TodoModelProtocol? = nil
     ) {
         self.textInputStackView = TextInputStackView(
@@ -81,19 +81,19 @@ class EditableTodoVC: UIViewController {
         self.createButtonBinding(createTodoButton)
 
         // 로딩인디케이터 바인딩
-        self.viewModel.output.isLoading
+        self.viewModel.state.isLoading
             .drive(self.loadingIndicator.rx.isAnimating)
             .disposed(by: self.disposeBag)
 
         // 생성, 수정 완료후 작업
-        self.viewModel.output.editedModel
+        self.viewModel.state.editedModel
             .drive(onNext: { todo in
                 self.didFinishWriting(todo)
             })
             .disposed(by: disposeBag)
             
             
-        self.viewModel.output.editError
+        self.viewModel.state.editError
             .compactMap { $0?.localizedDescription }
             .drive { e in
                 self.rx.showRetry(
@@ -143,7 +143,7 @@ class EditableTodoVC: UIViewController {
     }
 
     private func createButtonBinding(_ button: UIBarButtonItem) {
-        self.viewModel.output.inputValid
+        self.viewModel.state.inputValid
             .filter { _ in self.navigationItem.rightBarButtonItem != nil }
             .drive(self.navigationItem.rightBarButtonItem!.rx.isEnabled)
             .disposed(by: disposeBag)
@@ -154,13 +154,13 @@ class EditableTodoVC: UIViewController {
     }
     
     fileprivate func didFinishWriting(_ todo:TodoModelProtocol) {
-        preconditionFailure("Subclasses must implement didFinishWriting()")
+        fatalError("Subclasses must implement didFinishWriting()")
     }
 }
 
 // MARK: -
 class CreateTodoVC: EditableTodoVC {
-    init(_ viewModel:EditableTodoVM) {
+    init(_ viewModel:WritableTodoVM) {
         super.init(viewModel: viewModel)
     }
 
@@ -183,7 +183,7 @@ class CreateTodoVC: EditableTodoVC {
 
 // MARK: -
 class EditTodoVC: EditableTodoVC {
-    init(model: TodoModelProtocol, viewModel: EditableTodoVM) {
+    init(model: TodoModelProtocol, viewModel: WritableTodoVM) {
         super.init(viewModel: viewModel, model: model)
     }
 

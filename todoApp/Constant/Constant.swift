@@ -15,3 +15,14 @@ enum DataEnvironment: String {
     case local = "local"
     case production = "production"
 }
+
+public enum APIEnvironment {
+    case stub
+    case local
+    case production
+}
+
+enum NetworkError : Error {
+    case DecodedFailed
+    case DictionaryFailed
+}
